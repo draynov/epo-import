@@ -247,15 +247,15 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                         {subsection.fields.map((field) => {
                           const value = data?.[field.key];
                           if (!value && field.type !== "boolean") return null;
-                          field.key.includes("mesec") && typeof value === "number"
-                                  ? formatMonth(value)
-                                  : 
+                          
                           return (
                             <div key={field.key} className="bg-white rounded px-3 py-2">
                               <div className="text-xs text-gray-500 mb-0.5">{field.label}</div>
                               <div className="text-sm font-medium text-gray-900">
                                 {field.type === "boolean" 
                                   ? (value ? "Да" : "Не")
+                                  : field.key.includes("mesec") && typeof value === "number"
+                                  ? formatMonth(value)
                                   : String(value)
                                 }
                               </div>
