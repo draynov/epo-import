@@ -7,6 +7,7 @@
 
 import { PortfolioFieldDefinition } from "@/types";
 import { Input, Textarea, Select } from "@/components/ui";
+import { MONTHS, YEARS } from "@/config/date-options";
 
 export interface DynamicFieldProps {
   field: PortfolioFieldDefinition;
@@ -42,6 +43,35 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
       );
 
     case "number":
+      // Special handling for month and year fields
+      if (field.key.includes("mesec")) {
+        return (
+          <Select
+            label={field.label}
+            value={stringValue}
+            onChange={(e) => onChange(parseInt(e.target.value))}
+            options={MONTHS}
+            required={field.required}
+            error={error}
+            placeholder="Избери месец..."
+          />
+        );
+      }
+      
+      if (field.key.includes("godina")) {
+        return (
+          <Select
+            label={field.label}
+            value={stringValue}
+            onChange={(e) => onChange(parseInt(e.target.value))}
+            options={YEARS}
+            required={field.required}
+            error={error}
+            placeholder="Избери година..."
+          />
+        );
+      }
+      
       return (
         <Input
           type="number"

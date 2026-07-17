@@ -84,6 +84,43 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       editingSubsection.subsectionId, 
       dataToSave
     );
+    
+    // Trigger re-render by updating a dummy state
+    setIsEditModalOpen(false);
+    setEditingSubsection(null);
+  };
+
+  const handleEditRecord = (subsection: PortfolioSubsectionDefinition, index: number) => {
+    if (!portfolio) return;
+    
+    const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
+    const recordsData = data as { records?: Array<Record<string, unknown>> } | null;
+    const record = recordsData?.records?.[index];
+    
+    if (record) {
+      setEditingSubsection({ ...subsection, editingRecordIndex: index } as any);
+      setSubsectionData(recordsData?.records || []);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleDeleteRecord = (subsection: PortfolioSubsectionDefinition, index: number) => {
+    if (!portfolio) return;
+    if (!confirm("Сигурни ли сте, че искате да изтриете този запис?")) return;
+    
+    const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
+    const recordsData = data as { records?: Array<Record<string, unknown>> } | null;
+    const records = recordsData?.records || [];
+    
+    const newRecords = records.filter((_, i) => i !== index);
+    subsectionDataStorage.saveData(
+      portfolio.id,
+      subsection.subsectionId,
+      { records: newRecords }
+    );
+    
+    // Force re-render
+    setPortfolio({ ...portfolio });
   };
 
   if (!portfolio) return null;
@@ -180,10 +217,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             strokeLinecap="round" 
                             strokeLinejoin="round" 
                             strokeWidth={2} 
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
+                            d={subsection.type === "record_list" 
+                              ? "M12 4v16m8-8H4"
+                              : "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            }
                           />
                         </svg>
-                        Редактирай
+                        {subsection.type === "record_list" ? "Добави запис" : "Редактирай"}
                       </Button>
                     ) : (
                       <Button size="sm" variant="secondary" disabled>
@@ -231,6 +271,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                                     {field.label}
                                   </th>
                                 ))}
+                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                  Действия
+                                </th>
                               </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
@@ -247,6 +290,22 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                                       }
                                     </td>
                                   ))}
+                                  <td className="px-4 py-3 text-right text-sm">
+                                    <button
+                                      onClick={() => handleEditRecord(subsection, idx)}
+                                      className="text-blue-600 hover:text-blue-800 mr-3"
+                                      title="Редактирай"
+                                    >
+                                      ✏️
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteRecord(subsection, idx)}
+                                      className="text-red-600 hover:text-red-800"
+                                      title="Изтрий"
+                                    >
+                                      🗑️
+                                    </button>
+                                  </td>
                                 </tr>
                               ))}
                             </tbody>
