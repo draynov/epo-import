@@ -294,9 +294,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                                       key={field.key}
                                       className="px-4 py-3 text-sm text-gray-900"
                                     >
-                                      {fiefield.key.includes("mesec") && typeof record[field.key] === "number"
+                                      {field.key.includes("mesec") && typeof record[field.key] === "number"
                                         ? formatMonth(record[field.key] as number)
-                                        : ld.type === "boolean"
+                                        : field.type === "boolean"
                                         ? (record[field.key] ? "Да" : "Не")
                                         : String(record[field.key] || "-")
                                       }
