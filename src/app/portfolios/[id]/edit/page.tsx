@@ -71,10 +71,16 @@ const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
   const handleSaveSubsection = (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
     if (!portfolio || !editingSubsection) return;
     
+    // Convert data to proper format for storage
+    const dataToSave: Record<string, unknown> = 
+      editingSubsection.type === "record_list" 
+        ? { records: data as Array<Record<string, unknown>> } 
+        : data as Record<string, unknown>;
+    
     subsectionDataStorage.saveData(
       portfolio.id, 
       editingSubsection.subsectionId, 
-      editingSubsection.type === "record_list" ? { records: data } : data
+      dataToSave
     );
   };
 
