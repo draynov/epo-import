@@ -74,13 +74,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       <div className="space-y-6">
         {PORTFOLIO_CONFIGURATION.sections.map((section) => (
           <div
-            key={section.id}
+            key={section.sectionId}
             className="bg-white shadow-md rounded-lg overflow-hidden"
           >
             {/* Section Header */}
             <div className="bg-blue-50 px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
-                {section.name}
+                {section.title}
               </h2>
               {section.description && (
                 <p className="text-sm text-gray-600 mt-1">{section.description}</p>
@@ -91,13 +91,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             <div className="p-6 space-y-4">
               {section.subsections.map((subsection) => (
                 <div
-                  key={subsection.id}
+                  key={subsection.subsectionId}
                   className="border border-gray-200 rounded-md p-4"
                 >
                   <div className="flex items-center justify-between">
                     <div>
                       <h3 className="font-medium text-gray-900">
-                        {subsection.name}
+                        {subsection.title}
                       </h3>
                       {subsection.description && (
                         <p className="text-sm text-gray-600 mt-1">
