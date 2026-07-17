@@ -183,6 +183,68 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       </Button>
                     )}
                   </div>
+                  
+                  {/* Data Visualization */}
+                  {hasData && subsection.type === "direct_fields" && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {subsection.fields.map((field) => {
+                          const value = data?.[field.name];
+                          if (!value) return null;
+                          
+                          return (
+                            <div key={field.name} className="text-sm">
+                              <span className="font-medium text-gray-700">{field.label}:</span>{" "}
+                              <span className="text-gray-900">
+                                {field.type === "boolean" 
+                                  ? (value ? "Да" : "Не")
+                                  : String(value)
+                                }
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {hasData && subsection.type === "record_list" && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              {subsection.fields.slice(0, 5).map((field) => (
+                                <th
+                                  key={field.name}
+                                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  {field.label}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {(Array.isArray(data) ? data : data?.records || []).map((record: Record<string, unknown>, idx: number) => (
+                              <tr key={idx} className="hover:bg-gray-50">
+                                {subsection.fields.slice(0, 5).map((field) => (
+                                  <td
+                                    key={field.name}
+                                    className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap"
+                                  >
+                                    {field.type === "boolean"
+                                      ? (record[field.name] ? "Да" : "Не")
+                                      : String(record[field.name] || "-")
+                                    }
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
