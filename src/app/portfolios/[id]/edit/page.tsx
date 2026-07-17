@@ -192,21 +192,22 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   
                   {/* Data Visualization */}
                   {hasData && subsection.type === "direct_fields" && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-md">
+                      <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Попълнени данни</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {subsection.fields.map((field) => {
                           const value = data?.[field.name];
-                          if (!value) return null;
+                          if (!value && field.type !== "boolean") return null;
                           
                           return (
-                            <div key={field.name} className="text-sm">
-                              <span className="font-medium text-gray-700">{field.label}:</span>{" "}
-                              <span className="text-gray-900">
+                            <div key={field.name} className="bg-white rounded px-3 py-2">
+                              <div className="text-xs text-gray-500 mb-0.5">{field.label}</div>
+                              <div className="text-sm font-medium text-gray-900">
                                 {field.type === "boolean" 
                                   ? (value ? "Да" : "Не")
                                   : String(value)
                                 }
-                              </span>
+                              </div>
                             </div>
                           );
                         })}
@@ -215,39 +216,42 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   )}
                   
                   {hasData && subsection.type === "record_list" && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
-                      <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-50">
-                            <tr>
-                              {subsection.fields.slice(0, 5).map((field) => (
-                                <th
-                                  key={field.name}
-                                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                                >
-                                  {field.label}
-                                </th>
-                              ))}
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {(Array.isArray(data) ? data : data?.records || []).map((record: Record<string, unknown>, idx: number) => (
-                              <tr key={idx} className="hover:bg-gray-50">
+                    <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-md">
+                      <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Попълнени записи</h4>
+                      <div className="bg-white rounded overflow-hidden">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-100">
+                              <tr>
                                 {subsection.fields.slice(0, 5).map((field) => (
-                                  <td
+                                  <th
                                     key={field.name}
-                                    className="px-3 py-2 text-sm text-gray-900 whitespace-nowrap"
+                                    className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
                                   >
-                                    {field.type === "boolean"
-                                      ? (record[field.name] ? "Да" : "Не")
-                                      : String(record[field.name] || "-")
-                                    }
-                                  </td>
+                                    {field.label}
+                                  </th>
                                 ))}
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              {(Array.isArray(data) ? data : data?.records || []).map((record: Record<string, unknown>, idx: number) => (
+                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                                  {subsection.fields.slice(0, 5).map((field) => (
+                                    <td
+                                      key={field.name}
+                                      className="px-4 py-3 text-sm text-gray-900"
+                                    >
+                                      {field.type === "boolean"
+                                        ? (record[field.name] ? "Да" : "Не")
+                                        : String(record[field.name] || "-")
+                                      }
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
                       </div>
                     </div>
                   )}
