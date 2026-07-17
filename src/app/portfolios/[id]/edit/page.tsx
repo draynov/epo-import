@@ -147,20 +147,20 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                         <h3 className="font-medium text-gray-900">
                           {subsection.title}
                         </h3>
+                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                          {subsection.type === "direct_fields" ? "Полета" : "Списък"}
+                        </span>
                         {hasData && (
                           <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">
                             ✓ Попълнено
                           </span>
                         )}
                       </div>
-                      {subsection.description && (
+                      {!hasData && subsection.description && (
                         <p className="text-sm text-gray-600 mt-1">
                           {subsection.description}
                         </p>
                       )}
-                      <p className="text-xs text-gray-500 mt-1">
-                        Тип: {subsection.type === "direct_fields" ? "Директни полета" : "Списък със записи"}
-                      </p>
                     </div>
                     
                     {hasModal ? (
