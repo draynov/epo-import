@@ -4,7 +4,7 @@
  */
 
 import { PortfolioSectionDefinition } from "@/types";
-import * as OPTIONS from "./field-options";
+import * as OPTIONS from "../field-options";
 
 export const SECTION_1_GENERAL_INFO: PortfolioSectionDefinition = {
   sectionId: "section-1",
