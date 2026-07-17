@@ -108,7 +108,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       <div className="space-y-6">
         {PORTFOLIO_CONFIGURATION.sections.map((section) => (
           <div key={section.sectionId} className="bg-white shadow-md rounded-lg overflow-hidden">
-          {/* Section Header */}
             {/* Section Header */}
             <div className="bg-blue-50 px-6 py-4 border-b border-gray-200">
               <h2 className="text-xl font-semibold text-gray-900">
