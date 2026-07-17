@@ -195,7 +195,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   {/* Data Visualization */}
                   {hasData && subsection.type === "direct_fields" && (
                     <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-md">
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Попълнени данни</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {subsection.fields.map((field) => {
                           const value = data?.[field.key];
@@ -219,7 +218,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   
                   {hasData && subsection.type === "record_list" && (
                     <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-md">
-                      <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Попълнени записи</h4>
                       <div className="bg-white rounded overflow-hidden">
                         <div className="overflow-x-auto">
                           <table className="min-w-full divide-y divide-gray-200">
