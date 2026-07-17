@@ -13,6 +13,7 @@ import { subsectionDataStorage } from "@/lib/storage/subsection-data-storage";
 import { Button } from "@/components/ui";
 import { EditSubsectionModal } from "@/components/forms";
 import { PORTFOLIO_CONFIGURATION } from "@/config/portfolio-schema";
+import { MONTHS } from "@/config/date-options";
 
 interface PortfolioEditorPageProps {
   params: Promise<{ id: string }>;
@@ -124,6 +125,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   };
 
   if (!portfolio) return null;
+
+  // Helper function to format month numbers to Bulgarian month names
+  const formatMonth = (month: number | string): string => {
+    const monthNum = typeof month === 'string' ? parseInt(month) : month;
+    const monthObj = MONTHS.find(m => m.value === monthNum);
+    return monthObj ? monthObj.label : String(month);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -239,7 +247,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                         {subsection.fields.map((field) => {
                           const value = data?.[field.key];
                           if (!value && field.type !== "boolean") return null;
-                          
+                          field.key.includes("mesec") && typeof value === "number"
+                                  ? formatMonth(value)
+                                  : 
                           return (
                             <div key={field.key} className="bg-white rounded px-3 py-2">
                               <div className="text-xs text-gray-500 mb-0.5">{field.label}</div>
@@ -284,7 +294,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                                       key={field.key}
                                       className="px-4 py-3 text-sm text-gray-900"
                                     >
-                                      {field.type === "boolean"
+                                      {fiefield.key.includes("mesec") && typeof record[field.key] === "number"
+                                        ? formatMonth(record[field.key] as number)
+                                        : ld.type === "boolean"
                                         ? (record[field.key] ? "Да" : "Не")
                                         : String(record[field.key] || "-")
                                       }
