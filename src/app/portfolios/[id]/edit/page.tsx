@@ -86,7 +86,7 @@ const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
 
   // Show only Section 1 for testing
   const section1 = PORTFOLIO_CONFIGURATION.sections.find(s => s.sectionId === "section-1");
-  if (!section1) return null;
+  if (!section1 || !portfolio) return null;
 
   return (
     <div className="container mx-auto px-4 py-8">
