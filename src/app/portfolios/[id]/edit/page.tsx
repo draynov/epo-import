@@ -123,10 +123,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
               {section.subsections.map((subsection) => {
                 const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
                 
+                // Type guard for record list data
+                const recordsData = data as { records?: Array<Record<string, unknown>> } | null;
+                
                 // Check if subsection has data based on its type
                 const hasData = data && (
                   subsection.type === "record_list" 
-                    ? Array.isArray(data.records) && data.records.length > 0
+                    ? Array.isArray(recordsData?.records) && recordsData.records.length > 0
                     : Object.keys(data).length > 0
                 );
                 
@@ -233,7 +236,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                               </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                              {(Array.isArray(data) ? data : data?.records || []).map((record: Record<string, unknown>, idx: number) => (
+                              {(recordsData?.records || []).map((record: Record<string, unknown>, idx: number) => (
                                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                   {subsection.fields.slice(0, 5).map((field) => (
                                     <td
