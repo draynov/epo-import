@@ -162,28 +162,7 @@ const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
           initialData={subsectionData}
           onSave={handleSaveSubsection}
         />
-      )}      <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        {subsection.title}
-                      </h3>
-                      {subsection.description && (
-                        <p className="text-sm text-gray-600 mt-1">
-                          {subsection.description}
-                        </p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-1">
-                        Тип: {subsection.type === "direct_fields" ? "Директни полета" : "Списък със записи"}
-                      </p>
-                    </div>
-                    <Button size="sm">Редактирай</Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
+      )}
     </div>
   );
 }
