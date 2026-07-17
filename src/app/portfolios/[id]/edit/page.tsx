@@ -58,7 +58,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     );
   }
 const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
-    setEditingSubsection(subsection);
+    if (!portfolio) return;
+    
     
     // Load existing data
     const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
