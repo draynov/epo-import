@@ -86,9 +86,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     );
   };
 
-  // Show only Section 1 for testing
-  const section1 = PORTFOLIO_CONFIGURATION.sections.find(s => s.sectionId === "section-1");
-  if (!section1 || !portfolio) return null;
+  if (!portfolio) return null;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -106,27 +104,31 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
         </div>
       </div>
 
-      {/* Section 1: Обща информация */}
+      {/* All Sections */}
       <div className="space-y-6">
-        <div className="bg-white shadow-md rounded-lg overflow-hidden">
+        {PORTFOLIO_CONFIGURATION.sections.map((section) => (
+          <div key={section.sectionId} className="bg-white shadow-md rounded-lg overflow-hidden">
           {/* Section Header */}
-          <div className="bg-blue-50 px-6 py-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {section1.title}
-            </h2>
-            {section1.description && (
-              <p className="text-sm text-gray-600 mt-1">{section1.description}</p>
-            )}
-          </div>
+            {/* Section Header */}
+            <div className="bg-blue-50 px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {section.title}
+              </h2>
+              {section.description && (
+                <p className="text-sm text-gray-600 mt-1">{section.description}</p>
+              )}
+            </div>
 
-          {/* Subsections */}
-          <div className="p-6 space-y-4">
-            {section1.subsections.map((subsection) => {
-              const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
-              const hasData = data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0);
+            {/* Subsections */}
+            <div className="p-6 space-y-4">
+              {section.subsections.map((subsection) => {
+                const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
+                const hasData = data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0);
+                
+                // Only Section 1 has working modals for now
+                const hasModal = section.sectionId === "section-1";
 
-              return (
-                <div
+                  <div
                   key={subsection.subsectionId}
                   className="border border-gray-200 rounded-md p-4"
                 >
@@ -178,7 +180,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             })}
           </div>
         </div>
-      </div>
+      ))}
 
       {/* Edit Subsection Modal */}
       {editingSubsection && (
