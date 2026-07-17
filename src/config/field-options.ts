@@ -1,0 +1,247 @@
+/**
+ * Справочни данни - опции за select полета
+ * Извлечени от API документацията
+ */
+
+import { FieldOption } from "@/types";
+
+export const ACTUAL_POSITIONS: FieldOption[] = [
+  { value: "0", label: "Директор - училище" },
+  { value: "1", label: "Заместник-директор - училище" },
+  { value: "2", label: "Психолог" },
+  { value: "3", label: "Учител" },
+  { value: "4", label: "Възпитател" },
+  { value: "5", label: "Треньор" },
+  { value: "6", label: "Директор - детска градина" },
+  { value: "7", label: "Заместник-директор - детска градина" },
+  { value: "8", label: "Педагогически съветник" },
+  { value: "9", label: "Логопед" },
+  { value: "10", label: "Рехабилитатор" },
+  { value: "11", label: 'Ръководител направление "ИКТ"' },
+  { value: "12", label: "Корепетитор" },
+  { value: "13", label: "Хореограф" },
+  { value: "14", label: "Директор - център за развитие" },
+  { value: "15", label: "Заместник-директор - център за развитие" },
+  { value: "16", label: "Старши учител" },
+  { value: "17", label: "Друга" },
+  { value: "18", label: "Ресурсен учител" },
+  { value: "19", label: "Директор на център за личностно развитие" },
+  { value: "20", label: "Зам. директор на център за личностно развитие" },
+  {
+    value: "21",
+    label: "Директор на център за специална образователна подкрепа",
+  },
+  {
+    value: "22",
+    label: "Зам. директор на център за специална образователна подкрепа",
+  },
+  { value: "23", label: "Социален педагог" },
+  { value: "24", label: "Старши учител на деца и ученици с УИ" },
+  { value: "25", label: "Старши възпитател" },
+  { value: "26", label: "Директор на ЦПЛР" },
+  { value: "27", label: "Директор на РЦПППО" },
+  { value: "28", label: "Главен учител" },
+];
+
+export const INSTITUTION_TYPES: FieldOption[] = [
+  { value: "0", label: "Училище" },
+  { value: "1", label: "Детска градина" },
+  { value: "2", label: "ЦСОП" },
+  { value: "3", label: "ЦПЛР" },
+  { value: "4", label: "РЦПППО" },
+];
+
+export const EDUCATION_TYPES: FieldOption[] = [
+  { value: "0", label: "Начално" },
+  { value: "1", label: "Основно" },
+  { value: "2", label: "Средно" },
+  { value: "3", label: "Полувисше" },
+  { value: "4", label: "Висше - бакалавър" },
+  { value: "5", label: "Висше - магистър" },
+  { value: "6", label: "ОНС Доктор" },
+  { value: "7", label: "Доктор на науките" },
+];
+
+export const PKS_LEVELS: FieldOption[] = [
+  { value: "0", label: "Без степен" },
+  { value: "1", label: "1-ва степен" },
+  { value: "2", label: "2-ра степен" },
+  { value: "3", label: "3-та степен" },
+  { value: "4", label: "4-та степен" },
+  { value: "5", label: "5-та степен" },
+];
+
+export const CREDIT_DURATIONS: FieldOption[] = [
+  { value: "0", label: "8" },
+  { value: "1", label: "16" },
+  { value: "2", label: "32" },
+  { value: "3", label: "48" },
+  { value: "4", label: "30" },
+  { value: "5", label: "200" },
+];
+
+export const CREDIT_QUANTITIES: FieldOption[] = [
+  { value: "0", label: "0.5 кредита" },
+  { value: "1", label: "1 кредит" },
+  { value: "2", label: "2 кредита" },
+  { value: "3", label: "3 кредита" },
+  { value: "4", label: "1.5 кредита" },
+  { value: "5", label: "12.5 кредита" },
+];
+
+export const QUALIFICATION_TYPES: FieldOption[] = [
+  { value: "0", label: "Професионална квалификация" },
+  { value: "1", label: "Квалификационен курс" },
+  { value: "2", label: "Семинар" },
+  { value: "3", label: "Конференция" },
+  { value: "4", label: "Обучителен курс" },
+  { value: "5", label: "Специализация" },
+  { value: "6", label: "Удостоверение" },
+  { value: "7", label: "Педагогическа правоспособност" },
+  { value: "8", label: "Сертификат" },
+  { value: "9", label: "Уебинар" },
+];
+
+export const LANGUAGES: FieldOption[] = [
+  { value: "0", label: "Английски език" },
+  { value: "1", label: "Немски език" },
+  { value: "2", label: "Испански език" },
+  { value: "3", label: "Френски език" },
+  { value: "4", label: "Руски език" },
+  { value: "5", label: "Японски език" },
+  { value: "6", label: "Корейски език" },
+  { value: "7", label: "Португалски език" },
+  { value: "8", label: "Словашки език" },
+  { value: "9", label: "Китайски език" },
+  { value: "10", label: "Арабски език" },
+  { value: "11", label: "Беларуски език" },
+  { value: "12", label: "Датски език" },
+  { value: "13", label: "Гръцки език" },
+  { value: "14", label: "Естонски език" },
+  { value: "15", label: "Ирландски език" },
+  { value: "16", label: "Иврит" },
+  { value: "17", label: "Хинди" },
+  { value: "18", label: "Хърватски език" },
+  { value: "19", label: "Италиански език" },
+  { value: "20", label: "Латински език" },
+  { value: "21", label: "Люксембургски език" },
+  { value: "22", label: "Македонски език" },
+  { value: "23", label: "Холандски език" },
+  { value: "24", label: "Норвежки език" },
+  { value: "25", label: "Румънски език" },
+  { value: "26", label: "Словенски език" },
+  { value: "27", label: "Албански език" },
+  { value: "28", label: "Турски език" },
+  { value: "29", label: "Украински език" },
+];
+
+export const LANGUAGE_LEVELS: FieldOption[] = [
+  { value: "0", label: "А1 (Основно ниво на владеене)" },
+  { value: "1", label: "А2 (Основно ниво на владеене)" },
+  { value: "2", label: "B1 (Самостоятелно ниво на владеене)" },
+  { value: "3", label: "B2 (Самостоятелно ниво на владеене)" },
+  { value: "4", label: "C1 (Свободно ниво на владеене)" },
+  { value: "5", label: "C2 (Свободно ниво на владеене)" },
+];
+
+export const YES_NO_OPTIONS: FieldOption[] = [
+  { value: "1", label: "Да" },
+  { value: "0", label: "Не" },
+];
+
+export const AUTHORSHIP_TYPES: FieldOption[] = [
+  { value: "0", label: "Учебник" },
+  { value: "1", label: "Учебно помагало" },
+  { value: "2", label: "Монография" },
+  { value: "3", label: "Методическо пособие" },
+  { value: "4", label: "Речници" },
+  { value: "5", label: "Сборник материали" },
+  { value: "6", label: "Статия във вестници" },
+  { value: "7", label: "Статия" },
+  { value: "8", label: "Друго" },
+  { value: "9", label: "Програма за обучение" },
+  { value: "10", label: "Изследване" },
+  { value: "11", label: "Образователна платформа" },
+  { value: "12", label: "Публикация" },
+  { value: "20", label: "Видео" },
+];
+
+export const AUTHORSHIP_ROLES: FieldOption[] = [
+  { value: "0", label: "Автор" },
+  { value: "1", label: "Съавтор" },
+];
+
+export const FORUM_TYPES: FieldOption[] = [
+  { value: "0", label: "Педагогическа среща" },
+  { value: "1", label: "Семинар" },
+  { value: "2", label: "Конференция" },
+];
+
+export const CLASS_LEVELS: FieldOption[] = [
+  { value: "1", label: "1 клас" },
+  { value: "2", label: "2 клас" },
+  { value: "3", label: "3 клас" },
+  { value: "4", label: "4 клас" },
+  { value: "5", label: "5 клас" },
+  { value: "6", label: "6 клас" },
+  { value: "7", label: "7 клас" },
+  { value: "8", label: "8 клас" },
+  { value: "9", label: "9 клас" },
+  { value: "10", label: "10 клас" },
+  { value: "11", label: "11 клас" },
+  { value: "12", label: "12 клас" },
+  { value: "20", label: "Повече от един клас" },
+];
+
+export const GROUP_TYPES: FieldOption[] = [
+  { value: "0", label: "Първа група" },
+  { value: "1", label: "Втора група" },
+  { value: "2", label: "Трета група" },
+  { value: "3", label: "Първа подготвителна група (ПГ-5г.)" },
+  { value: "4", label: "Втората подготвителна група (ПГ-6г.)" },
+  { value: "5", label: "Подготвителна група" },
+  { value: "6", label: "Повече от една група" },
+];
+
+export const COMPETENCES: FieldOption[] = [
+  // Умения (0-6)
+  { value: "0", label: "Общуване комуникация" },
+  { value: "1", label: "Изпълнителски умения" },
+  { value: "2", label: "Критически умения" },
+  { value: "3", label: "Емоционално-волеви умения" },
+  { value: "4", label: "Двигателни умения" },
+  { value: "5", label: "Творчески умения" },
+  { value: "6", label: "Бягане умения" },
+  
+  // Подпомагащи компетентности (7-16)
+  { value: "7", label: "Управление педагогически ситуации" },
+  { value: "8", label: "Справяне на необх акад на изостанали студенти" },
+  { value: "9", label: "Организиране и координация на педагогическото работа" },
+  { value: "10", label: "Осмисляне на напредъка на децата/учениците" },
+  { value: "11", label: "Предаването на знанията с културен смисъл след съобщаване" },
+  { value: "12", label: "Kомпютра компютърна и медиаграмотност" },
+  { value: "13", label: "Прилагането критики" },
+  { value: "14", label: "Умения с обработващото тес педагогическото литература" },
+  { value: "15", label: "Информационните" },
+  { value: "16", label: "Организационно-диагностични" },
+  
+  // Взаимодействие (17-21)
+  { value: "17", label: "Работа с родители" },
+  { value: "18", label: "Работа с колегите и други педагогически субекти" },
+  { value: "19", label: "Взаимодействие на училищните ръководства" },
+  { value: "20", label: "Управление и сътрудник на екипа" },
+  { value: "21", label: "Посредничест mezi представителите образователното среда" },
+  
+  // Личностни компетентности (22-27)
+  { value: "22", label: "Комуникативни способности" },
+  { value: "23", label: "Самоактуализиране и личностен капацитет" },
+  { value: "24", label: "Автономия, отговорност и солидарност" },
+  { value: "25", label: "Устойчиво на промени" },
+  { value: "26", label: "Уважаване и подържане на традициите" },
+  { value: "27", label: "Почитане и зачитване на педагогическата етика" },
+  
+  // Развитие и самоусъвършенстване (28-30)
+  { value: "28", label: "Индивидуална и професионална самооценка" },
+  { value: "29", label: "Квалификационна самоподготовка" },
+  { value: "30", label: "Активното и задълженията по мониторинг и развитие" },
+];
