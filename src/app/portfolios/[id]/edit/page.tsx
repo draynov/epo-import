@@ -195,11 +195,11 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       <h4 className="text-xs font-semibold text-gray-500 uppercase mb-3">Попълнени данни</h4>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {subsection.fields.map((field) => {
-                          const value = data?.[field.name];
+                          const value = data?.[field.key];
                           if (!value && field.type !== "boolean") return null;
                           
                           return (
-                            <div key={field.name} className="bg-white rounded px-3 py-2">
+                            <div key={field.key} className="bg-white rounded px-3 py-2">
                               <div className="text-xs text-gray-500 mb-0.5">{field.label}</div>
                               <div className="text-sm font-medium text-gray-900">
                                 {field.type === "boolean" 
@@ -224,7 +224,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                               <tr>
                                 {subsection.fields.slice(0, 5).map((field) => (
                                   <th
-                                    key={field.name}
+                                    key={field.key}
                                     className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
                                   >
                                     {field.label}
@@ -237,12 +237,12 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                                   {subsection.fields.slice(0, 5).map((field) => (
                                     <td
-                                      key={field.name}
+                                      key={field.key}
                                       className="px-4 py-3 text-sm text-gray-900"
                                     >
                                       {field.type === "boolean"
-                                        ? (record[field.name] ? "Да" : "Не")
-                                        : String(record[field.name] || "-")
+                                        ? (record[field.key] ? "Да" : "Не")
+                                        : String(record[field.key] || "-")
                                       }
                                     </td>
                                   ))}
