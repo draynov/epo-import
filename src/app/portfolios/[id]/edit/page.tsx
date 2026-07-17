@@ -259,7 +259,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             })}
           </div>
         </div>
-      ))}
+        ))}
+      </div>
 
       {/* Edit Subsection Modal */}
       {editingSubsection && (
