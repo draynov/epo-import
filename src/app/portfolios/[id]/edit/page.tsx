@@ -81,7 +81,23 @@ const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
   const section1 = PORTFOLIO_CONFIGURATION.sections.find(s => s.sectionId === "section-1");
   if (!section1) return null;
 
-   1: Обща информация */}
+  return (
+    <div className="container mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-3xl font-bold text-gray-900">{portfolio.name}</h1>
+          <Button variant="secondary" onClick={() => router.push("/")}>
+            ← Назад
+          </Button>
+        </div>
+        <div className="text-sm text-gray-600">
+          <p>User ID: {portfolio.epoUserId}</p>
+          <p>Portfolio ID: {portfolio.epoPortfolioId}</p>
+        </div>
+      </div>
+
+      {/* Section 1: Обща информация */}
       <div className="space-y-6">
         <div className="bg-white shadow-md rounded-lg overflow-hidden">
           {/* Section Header */}
