@@ -128,6 +128,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                 // Only Section 1 has working modals for now
                 const hasModal = section.sectionId === "section-1";
 
+                return (
                   <div
                   key={subsection.subsectionId}
                   className="border border-gray-200 rounded-md p-4"
