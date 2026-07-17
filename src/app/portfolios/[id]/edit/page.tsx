@@ -123,7 +123,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             <div className="p-6 space-y-4">
               {section.subsections.map((subsection) => {
                 const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
-                const hasData = data && (Array.isArray(data) ? data.length > 0 : Object.keys(data).length > 0);
+                
+                // Check if subsection has data based on its type
+                const hasData = data && (
+                  subsection.type === "record_list" 
+                    ? Array.isArray(data.records) && data.records.length > 0
+                    : Object.keys(data).length > 0
+                );
                 
                 // Only Section 1 has working modals for now
                 const hasModal = section.sectionId === "section-1";
