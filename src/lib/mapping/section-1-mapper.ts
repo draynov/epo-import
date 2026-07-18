@@ -184,12 +184,27 @@ export function mapToSection1(parsedData: ParsedHTMLData): Section1Mapping {
     const table = workHistorySection.tables[0];
     
     const mappedRecords = table.rows.map(row => {
-      const period = row['Период'] || row['период'] || '';
-      const institution = row['Институция'] || row['Заглавие'] || row['заглавие'] || '';
-      const position = row['Длъжност'] || row['Описание'] || row['описание'] || '';
+      const period = row['Период'] || row['період'] || '';
+      let institution = row['Институция'] || row['Заглавие'] || row['заглавие'] || '';
+      let position = row['Длъжност'] || row['Описание'] || row['описание'] || '';
 
       // Parse period (e.g., "2015-2020" or "09/2015 - 06/2020")
-      const { yearFrom, yearTo, nowTo } = parsePeriod(period);
+      let { yearFrom, yearTo, nowTo } = parsePeriod(period);
+
+      // Check if title indicates current position
+      const title = row['Заглавие'] || row['заглавие'] || '';
+      if (title.toLowerCase().includes('настояща') || 
+          title.toLowerCase().includes('текуща') ||
+          title.toLowerCase().includes('current')) {
+        nowTo = true;
+        
+        // Parse description for current position: "Позиция в Институция"
+        const descriptionParts = position.split(/\s+в\s+/i);
+        if (descriptionParts.length >= 2) {
+          position = descriptionParts[0].trim();
+          institution = descriptionParts.slice(1).join(' в ').trim();
+        }
+      }
 
       return {
         godina_from: yearFrom,
