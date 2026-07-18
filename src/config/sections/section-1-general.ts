@@ -167,7 +167,7 @@ export const SECTION_1_GENERAL_INFO: PortfolioSectionDefinition = {
           key: "mesec_from",
           label: "Месец от",
           type: "number",
-          required: true,
+          required: false,
           min: 1,
           max: 12,
         },
