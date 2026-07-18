@@ -139,7 +139,35 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
         timelineItems.forEach((item) => {
           const title = item.querySelector('h3')?.textContent?.trim() || '';
           const time = item.querySelector('h4')?.textContent?.trim() || '';
-          const description = item.querySelector('.job-description, .graduation-description, p')?.textContent?.trim() || '';
+          
+          // Extract description - get all paragraphs and text content
+          const descriptionContainer = item.querySelector('.job-description, .graduation-description, .line-content');
+          let description = '';
+          
+          if (descriptionContainer) {
+            // Get all text content, including nested paragraphs
+            const paragraphs = descriptionContainer.querySelectorAll('p');
+            if (paragraphs.length > 0) {
+              description = Array.from(paragraphs)
+                .map(p => p.textContent?.trim())
+                .filter(text => text && text.length > 0)
+                .join('\n\n');
+            } else {
+              // Fallback to full text content
+              description = descriptionContainer.textContent?.trim() || '';
+            }
+          }
+          
+          // Fallback: if no description container, try to get any p tags in the item
+          if (!description) {
+            const allParagraphs = item.querySelectorAll('p');
+            if (allParagraphs.length > 0) {
+              description = Array.from(allParagraphs)
+                .map(p => p.textContent?.trim())
+                .filter(text => text && text.length > 0)
+                .join('\n\n');
+            }
+          }
           
           if (title || time || description) {
             table.rows.push({
