@@ -7,6 +7,7 @@ import { portfolioStorage } from "@/lib/storage/portfolio-storage";
 import { parseHTMLContent, ParsedHTMLData } from "@/lib/parsers/html-parser";
 import { mapToSection1, Section1Mapping } from "@/lib/mapping/section-1-mapper";
 import { ImportWizard } from "@/components/import/import-wizard";
+import { subsectionDataStorage } from "@/lib/storage/subsection-data-storage";
 
 interface ImportPdfPageProps {
   params: Promise<{ id: string }>;
@@ -110,10 +111,40 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   };
 
   const handleConfirmImport = (selectedMapping: Section1Mapping) => {
-    // TODO: Implement actual import to portfolio storage
-    console.log("Импорт на избраните данни:", selectedMapping);
-    alert(`Ще бъдат импортирани:\n- ${selectedMapping.fields.length} полета\n- ${selectedMapping.records.length} таблици с записи\n\nИмплементацията на импорта предстои...`);
-    setShowWizard(false);
+    if (!portfolio) return;
+
+    try {
+      // Group fields by subsection
+      const fieldsBySubsection: Record<string, Record<string, string>> = {};
+      
+      selectedMapping.fields.forEach((field) => {
+        if (!fieldsBySubsection[field.subsectionId]) {
+          fieldsBySubsection[field.subsectionId] = {};
+        }
+        fieldsBySubsection[field.subsectionId][field.targetField] = field.sourceValue;
+      });
+
+      // Save direct_fields data
+      Object.entries(fieldsBySubsection).forEach(([subsectionId, data]) => {
+        subsectionDataStorage.saveData(portfolio.id, subsectionId, data);
+      });
+
+      // Save record_list data
+      selectedMapping.records.forEach((recordMapping) => {
+        subsectionDataStorage.saveData(
+          portfolio.id,
+          recordMapping.targetSubsection,
+          { records: recordMapping.records }
+        );
+      });
+
+      // Success - redirect to edit page
+      alert(`✓ Успешен импорт!\n\n- Импортирани полета: ${selectedMapping.fields.length}\n- Импортирани записи: ${selectedMapping.records.reduce((sum, r) => sum + r.records.length, 0)}`);
+      router.push(`/portfolios/${portfolio.id}/edit`);
+    } catch (err) {
+      console.error("Грешка при импорт:", err);
+      alert("Грешка при импортиране на данните. Моля опитайте отново.");
+    }
   };
 
   const handleCancelWizard = () => {
