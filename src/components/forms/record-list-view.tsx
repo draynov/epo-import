@@ -70,6 +70,22 @@ export function RecordListView({
     }
   };
 
+  const handleMoveUp = (index: number) => {
+    if (index === 0) return;
+    const newRecords = [...records];
+    [newRecords[index - 1], newRecords[index]] = [newRecords[index], newRecords[index - 1]];
+    setRecords(newRecords);
+    onDataChange(subsectionId, { records: newRecords });
+  };
+
+  const handleMoveDown = (index: number) => {
+    if (index === records.length - 1) return;
+    const newRecords = [...records];
+    [newRecords[index], newRecords[index + 1]] = [newRecords[index + 1], newRecords[index]];
+    setRecords(newRecords);
+    onDataChange(subsectionId, { records: newRecords });
+  };
+
   const handleSaveRecord = (record: Record<string, unknown>) => {
     let newRecords: Array<Record<string, unknown>>;
     
@@ -152,8 +168,8 @@ export function RecordListView({
           <p className="text-gray-600">Няма добавени записи</p>
         </div>
       ) : (
-        <div className="border rounded-lg overflow-hidden bg-white">
-          <table className="min-w-full divide-y divide-gray-200">
+        <div className="border border-gray-200 rounded-lg overflow-hidden bg-white">
+          <table className="min-w-full divide-y divide-gray-100">
             <thead className="bg-gray-50">
               <tr>
                 {displayFields.map((field) => (
@@ -169,7 +185,7 @@ export function RecordListView({
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-100">
               {records.map((record, idx) => (
                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
                   {displayFields.map((field) => (
@@ -178,6 +194,48 @@ export function RecordListView({
                     </td>
                   ))}
                   <td className="px-4 py-3 text-right text-sm">
+                    <button
+                      onClick={() => handleMoveUp(idx)}
+                      disabled={idx === 0}
+                      className="text-gray-600 hover:text-gray-800 mr-2 disabled:text-gray-300 disabled:cursor-not-allowed"
+                      title="Премести нагоре"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 inline"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 15l7-7 7 7"
+                        />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleMoveDown(idx)}
+                      disabled={idx === records.length - 1}
+                      className="text-gray-600 hover:text-gray-800 mr-3 disabled:text-gray-300 disabled:cursor-not-allowed"
+                      title="Премести надолу"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 inline"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
                     <button
                       onClick={() => handleEditRecord(idx)}
                       className="text-blue-600 hover:text-blue-800 mr-3"
