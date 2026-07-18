@@ -59,6 +59,9 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
     }
   });
 
+  // Extract profile/intro information (common in portfolio sites)
+  extractProfileInfo(contentRoot as Element, rawTextFields);
+
   // Extract text fields (looking for common patterns like dt/dd, label/value, etc.)
   extractTextFields(contentRoot as Element, rawTextFields);
 
@@ -246,8 +249,67 @@ function parseTable(table: HTMLTableElement): ParsedTable {
   };
 }
 
-/**
- * Extract text fields from common patterns (dt/dd, div pairs, etc.)
+/** * Extract profile/intro information (name, description, etc.)
+ */
+function extractProfileInfo(root: Element | Document, fields: ParsedTextField[]): void {
+  // Pattern 1: Portfolio intro section with name
+  const introName = root.querySelector('.intro-title1, h1.intro-title1, .profile-name, h1[class*="name"]');
+  if (introName) {
+    const fullName = introName.textContent?.trim();
+    if (fullName) {
+      fields.push({ label: 'Име', value: fullName });
+    }
+  }
+
+  // Pattern 2: Side menu name (fallback)
+  if (!introName) {
+    const sideName = root.querySelector('.side-menu-name');
+    if (sideName) {
+      const fullName = sideName.textContent?.trim();
+      if (fullName) {
+        fields.push({ label: 'Име', value: fullName });
+      }
+    }
+  }
+
+  // Pattern 3: Job/position title
+  const jobTitle = root.querySelector('.intro-title2, h2.intro-title2, .side-menu-job, [class*="job-title"]');
+  if (jobTitle) {
+    const job = jobTitle.textContent?.trim();
+    if (job) {
+      fields.push({ label: 'Длъжност', value: job });
+    }
+  }
+
+  // Pattern 4: Description/bio
+  const descriptions = root.querySelectorAll('.view_settings1, .profile-description, [class*="description"]');
+  descriptions.forEach((desc) => {
+    const text = desc.textContent?.trim();
+    if (text && text.length > 20 && !text.includes('function') && !text.includes('script')) {
+      // Only add if it looks like actual content
+      fields.push({ label: 'Описание', value: text });
+    }
+  });
+
+  // Pattern 5: Contact info, email, phone
+  const contactPatterns = [
+    { selector: '[class*="email"], [id*="email"]', label: 'Имейл' },
+    { selector: '[class*="phone"], [id*="phone"], [class*="tel"]', label: 'Телефон' },
+    { selector: '[class*="address"]', label: 'Адрес' },
+  ];
+
+  contactPatterns.forEach(({ selector, label }) => {
+    const element = root.querySelector(selector);
+    if (element) {
+      const value = element.textContent?.trim() || element.getAttribute('value') || '';
+      if (value && value.length > 2) {
+        fields.push({ label, value });
+      }
+    }
+  });
+}
+
+/** * Extract text fields from common patterns (dt/dd, div pairs, etc.)
  */
 function extractTextFields(root: Element | Document, fields: ParsedTextField[]): void {
   // Pattern 1: Definition lists (dt/dd)
