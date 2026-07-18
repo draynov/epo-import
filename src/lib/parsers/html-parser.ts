@@ -117,6 +117,53 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
     });
   }
 
+  // Try to parse timeline/portfolio structure (like uchilishta.bg exports)
+  const timelineSections = contentRoot.querySelectorAll('section.timeline, section[class*="timeline"]');
+  if (timelineSections.length > 0) {
+    timelineSections.forEach((timelineSection) => {
+      const sectionTitle = timelineSection.querySelector('h2.section-title, h2')?.textContent?.trim() || 'Секция';
+      
+      // Extract timeline items
+      const timelineItems = timelineSection.querySelectorAll('.line.row[class*="view_settings"]');
+      
+      if (timelineItems.length > 0) {
+        const table: ParsedTable = {
+          title: sectionTitle,
+          headers: ['Заглавие', 'Период', 'Описание'],
+          rows: [],
+        };
+
+        timelineItems.forEach((item) => {
+          const title = item.querySelector('h3')?.textContent?.trim() || '';
+          const time = item.querySelector('h4')?.textContent?.trim() || '';
+          const description = item.querySelector('.job-description, .graduation-description, p')?.textContent?.trim() || '';
+          
+          if (title || time || description) {
+            table.rows.push({
+              'Заглавие': title,
+              'Период': time,
+              'Описание': description,
+            });
+          }
+        });
+
+        if (table.rows.length > 0) {
+          const existingSection = sections.find(s => s.title === sectionTitle);
+          if (existingSection) {
+            existingSection.tables.push(table);
+          } else {
+            sections.push({
+              title: sectionTitle,
+              textFields: [],
+              tables: [table],
+              lists: [],
+            });
+          }
+        }
+      }
+    });
+  }
+
   return {
     sections: sections.length > 0 ? sections : [{
       title: 'Данни',
