@@ -6,6 +6,7 @@
 
 import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Portfolio } from "@/types/portfolio-data";
 import { PortfolioSubsectionDefinition } from "@/types";
 import { portfolioStorage } from "@/lib/storage/portfolio-storage";
@@ -106,8 +107,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">{portfolio.name}</h1>
           <div className="flex gap-3">
-            <button
-              onClick={() => router.push(`/portfolios/${id}/import`)}
+            <Link
+              href={`/portfolios/${id}/import`}
               className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-purple-600 hover:bg-purple-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-600"
             >
               <svg
@@ -125,10 +126,10 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                 />
               </svg>
               Импорт от URL
-            </button>
-            <Button variant="secondary" onClick={() => router.push("/")}>
+            </Link>
+            <Link href="/" className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500">
               ← Назад
-            </Button>
+            </Link>
           </div>
         </div>
         <div className="text-sm text-gray-600">
