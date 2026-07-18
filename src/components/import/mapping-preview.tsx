@@ -1,11 +1,13 @@
 /**
  * Mapping Preview Component
  * Shows side-by-side comparison of expected fields (left) and extracted data (right)
+ * Displays ALL fields from Section 1 config, even if no mapping exists
  */
 
 'use client';
 
 import { Section1Mapping, FieldMapping, RecordMapping } from '@/lib/mapping/section-1-mapper';
+import { SECTION_1_GENERAL_INFO } from '@/config/sections/section-1-general';
 import { useState } from 'react';
 
 interface MappingPreviewProps {
@@ -50,17 +52,20 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
     onConfirm(filteredMapping);
   };
 
-  // Group fields by subsection
-  const fieldsBySubsection = mapping.fields.reduce((acc, field) => {
-    if (!acc[field.subsectionId]) {
-      acc[field.subsectionId] = [];
-    }
-    acc[field.subsectionId].push(field);
-    return acc;
-  }, {} as Record<string, FieldMapping[]>);
+  // Create a map of existing mappings for quick lookup
+  const fieldMappingMap = new Map<string, FieldMapping>();
+  mapping.fields.forEach(f => fieldMappingMap.set(f.targetField, f));
+
+  const recordMappingMap = new Map<string, RecordMapping>();
+  mapping.records.forEach(r => recordMappingMap.set(r.targetSubsection, r));
+
+  // Count total fields (all fields from config, not just mapped ones)
+  let totalFieldsInConfig = 0;
+  SECTION_1_GENERAL_INFO.subsections.forEach(sub => {
+    totalFieldsInConfig += sub.fields.length;
+  });
 
   const totalSelected = selectedFields.size + selectedRecords.size;
-  const totalAvailable = mapping.fields.length + mapping.records.length;
 
   return (
     <div className="space-y-6">
@@ -70,53 +75,88 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
           Преглед на мапинг за Секция 1: Обща информация
         </h2>
         <p className="text-sm text-gray-600">
-          Избрани: <span className="font-semibold">{totalSelected}</span> от {totalAvailable} мапинга
+          Избрани: <span className="font-semibold">{totalSelected}</span> от {mapping.fields.length + mapping.records.length} намерени
+          {' • '}
+          Общо очаквани: <span className="font-semibold">{totalFieldsInConfig}</span> полета
         </p>
       </div>
 
-      {/* Field Mappings */}
-      {Object.entries(fieldsBySubsection).map(([subsectionId, fields]) => (
-        <div key={subsectionId} className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-            <h3 className="text-base font-semibold text-gray-900">
-              {fields[0].subsectionTitle}
-            </h3>
-          </div>
-          
-          <div className="divide-y divide-gray-100">
-            {fields.map((field) => (
-              <FieldMappingRow
-                key={field.targetField}
-                field={field}
-                isSelected={selectedFields.has(field.targetField)}
-                onToggle={() => handleFieldToggle(field.targetField)}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
-
-      {/* Record Mappings */}
-      {mapping.records.map((record) => (
-        <div key={record.targetSubsection} className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-semibold text-gray-900">
-                {record.targetLabel}
-              </h3>
-              <span className="text-sm text-gray-600">
-                {record.records.length} {record.records.length === 1 ? 'запис' : 'записа'}
-              </span>
+      {/* All Subsections from Config */}
+      {SECTION_1_GENERAL_INFO.subsections.map((subsection) => {
+        if (subsection.type === 'direct_fields') {
+          return (
+            <div key={subsection.subsectionId} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <h3 className="text-base font-semibold text-gray-900">
+                  {subsection.title}
+                </h3>
+                <p className="text-xs text-gray-500 mt-1">{subsection.description}</p>
+              </div>
+              
+              <div className="divide-y divide-gray-100">
+                {subsection.fields.map((configField) => {
+                  const mapping = fieldMappingMap.get(configField.key);
+                  
+                  if (mapping) {
+                    // Field has mapping - show it
+                    return (
+                      <FieldMappingRow
+                        key={configField.key}
+                        field={mapping}
+                        isSelected={selectedFields.has(configField.key)}
+                        onToggle={() => handleFieldToggle(configField.key)}
+                      />
+                    );
+                  } else {
+                    // Field missing - show placeholder
+                    return (
+                      <MissingFieldRow
+                        key={configField.key}
+                        fieldKey={configField.key}
+                        fieldLabel={configField.label}
+                      />
+                    );
+                  }
+                })}
+              </div>
             </div>
-          </div>
+          );
+        } else if (subsection.type === 'record_list') {
+          const recordMapping = recordMappingMap.get(subsection.subsectionId);
           
-          <RecordMappingRow
-            record={record}
-            isSelected={selectedRecords.has(record.targetSubsection)}
-            onToggle={() => handleRecordToggle(record.targetSubsection)}
-          />
-        </div>
-      ))}
+          return (
+            <div key={subsection.subsectionId} className="border border-gray-200 rounded-lg overflow-hidden">
+              <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      {subsection.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">{subsection.description}</p>
+                  </div>
+                  {recordMapping && (
+                    <span className="text-sm text-gray-600">
+                      {recordMapping.records.length} {recordMapping.records.length === 1 ? 'запис' : 'записа'}
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              {recordMapping ? (
+                <RecordMappingRow
+                  record={recordMapping}
+                  isSelected={selectedRecords.has(subsection.subsectionId)}
+                  onToggle={() => handleRecordToggle(subsection.subsectionId)}
+                />
+              ) : (
+                <MissingRecordRow subsectionTitle={subsection.title} />
+              )}
+            </div>
+          );
+        }
+        
+        return null;
+      })}
 
       {/* Actions */}
       <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
@@ -273,6 +313,88 @@ function RecordMappingRow({
               ))}
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Missing field row - for fields without mapping data
+ */
+function MissingFieldRow({ 
+  fieldKey, 
+  fieldLabel 
+}: { 
+  fieldKey: string; 
+  fieldLabel: string;
+}) {
+  return (
+    <div className="p-4 bg-gray-50 opacity-75">
+      <div className="flex items-start gap-4">
+        {/* Disabled Checkbox */}
+        <input
+          type="checkbox"
+          disabled
+          className="mt-1 h-4 w-4 text-gray-300 rounded border-gray-300 cursor-not-allowed"
+        />
+
+        {/* Mapping Content */}
+        <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Left: Expected Field */}
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-gray-500">ОЧАКВАНО ПОЛЕ</div>
+            <div className="text-sm font-semibold text-gray-700">{fieldLabel}</div>
+            <div className="text-xs text-gray-400">Ключ: {fieldKey}</div>
+          </div>
+
+          {/* Right: Missing Value */}
+          <div className="space-y-1">
+            <div className="text-xs font-medium text-gray-500">ИЗВЛЕЧЕНА СТОЙНОСТ</div>
+            <div className="text-sm text-gray-500 italic">
+              Липсва подходяща информация в HTML файла
+            </div>
+          </div>
+        </div>
+
+        {/* Missing Badge */}
+        <div className="px-2 py-1 rounded text-xs font-medium text-gray-500 bg-gray-200">
+          Липсва
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Missing record row - for record_list without mapping data
+ */
+function MissingRecordRow({ 
+  subsectionTitle 
+}: { 
+  subsectionTitle: string;
+}) {
+  return (
+    <div className="p-4 bg-gray-50 opacity-75">
+      <div className="flex items-start gap-4">
+        {/* Disabled Checkbox */}
+        <input
+          type="checkbox"
+          disabled
+          className="mt-1 h-4 w-4 text-gray-300 rounded border-gray-300 cursor-not-allowed"
+        />
+
+        {/* Content */}
+        <div className="flex-1">
+          <div className="text-xs font-medium text-gray-500 mb-2">ТАБЛИЦА С ЗАПИСИ</div>
+          <div className="text-sm text-gray-500 italic">
+            Липсва подходяща информация в HTML файла
+          </div>
+        </div>
+
+        {/* Missing Badge */}
+        <div className="px-2 py-1 rounded text-xs font-medium text-gray-500 bg-gray-200">
+          Липсва
         </div>
       </div>
     </div>
