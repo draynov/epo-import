@@ -79,7 +79,6 @@ export function RecordModal({
             value={formData[field.key]}
             onChange={(value) => handleFieldChange(field.key, value)}
             error={errors[field.key]}
-            allValues={formData}
           />
         ))}
 
