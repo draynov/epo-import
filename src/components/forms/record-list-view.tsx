@@ -82,10 +82,14 @@ export function RecordListView({
       {/* Header with Add button */}
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold text-gray-900">{subsection.title}</h3>
-        <Button onClick={handleAddRecord} className="bg-green-600 hover:bg-green-700">
+        <Button 
+          size="sm"
+          onClick={handleAddRecord} 
+          className="bg-green-600 hover:bg-green-700 text-white"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 inline mr-1"
+            className="h-4 w-4 inline mr-1"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -97,7 +101,7 @@ export function RecordListView({
               d="M12 4v16m8-8H4"
             />
           </svg>
-          Добави запис
+          Добави
         </Button>
       </div>
 

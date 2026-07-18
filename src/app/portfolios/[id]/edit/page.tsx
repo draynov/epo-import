@@ -177,7 +177,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       <Button 
                         size="sm" 
                         onClick={() => handleEditSubsection(subsection)}
-                        className="bg-green-600 hover:bg-green-700 text-white"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
                       >
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 

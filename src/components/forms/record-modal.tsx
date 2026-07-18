@@ -36,7 +36,18 @@ export function RecordModal({
   }, [isOpen, record]);
 
   const handleFieldChange = (key: string, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [key]: value };
+      
+      // If "now_to" checkbox is checked, clear mesec_to and godina_to
+      if (key === "now_to" && value === true) {
+        updated.mesec_to = undefined;
+        updated.godina_to = undefined;
+      }
+      
+      return updated;
+    });
+    
     if (errors[key]) {
       setErrors((prev) => {
         const newErrors = { ...prev };
@@ -49,9 +60,31 @@ export function RecordModal({
   const handleSubmit = () => {
     // Валидация
     const newErrors: Record<string, string> = {};
+    const hasNowTo = formData.now_to === true;
 
     for (const field of subsection.fields) {
-      if (field.required && !formData[field.key]) {
+      // Skip validation for fields disabled by now_to
+      const isDisabledByNowTo = hasNowTo && (field.key === "mesec_to" || field.key === "godina_to");
+      
+      if (isDisabledByNowTo) {
+        continue;
+      }
+      
+      // Custom required logic
+      let isRequired = field.required;
+      
+      // godina_from is always required if it exists
+      if (field.key === "godina_from") {
+        isRequired = true;
+      }
+      
+      // godina_to is required only if now_to is not checked
+      if (field.key === "godina_to" && !hasNowTo) {
+        isRequired = true;
+      }
+      
+      // Check for empty values
+      if (isRequired && !formData[field.key]) {
         newErrors[field.key] = `${field.label} е задължително поле`;
       }
     }
@@ -72,15 +105,21 @@ export function RecordModal({
       title={record ? "Редактирай запис" : "Добави запис"}
     >
       <div className="space-y-4">
-        {subsection.fields.map((field) => (
-          <DynamicField
-            key={field.key}
-            field={field}
-            value={formData[field.key]}
-            onChange={(value) => handleFieldChange(field.key, value)}
-            error={errors[field.key]}
-          />
-        ))}
+        {subsection.fields.map((field) => {
+          const hasNowTo = formData.now_to === true;
+          const isDisabled = hasNowTo && (field.key === "mesec_to" || field.key === "godina_to");
+          
+          return (
+            <DynamicField
+              key={field.key}
+              field={field}
+              value={formData[field.key]}
+              onChange={(value) => handleFieldChange(field.key, value)}
+              error={errors[field.key]}
+              disabled={isDisabled}
+            />
+          );
+        })}
 
         <div className="flex gap-2 pt-4">
           <Button onClick={handleSubmit} className="flex-1">

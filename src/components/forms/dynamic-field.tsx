@@ -14,9 +14,10 @@ export interface DynamicFieldProps {
   value: unknown;
   onChange: (value: unknown) => void;
   error?: string;
+  disabled?: boolean;
 }
 
-export function DynamicField({ field, value, onChange, error }: DynamicFieldProps) {
+export function DynamicField({ field, value, onChange, error, disabled }: DynamicFieldProps) {
   const stringValue = value?.toString() || "";
 
   switch (field.type) {
@@ -28,6 +29,7 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
           onChange={(e) => onChange(e.target.value)}
           required={field.required}
           error={error}
+          disabled={disabled}
         />
       );
 
@@ -39,6 +41,7 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
           onChange={(e) => onChange(e.target.value)}
           required={field.required}
           error={error}
+          disabled={disabled}
         />
       );
 
@@ -54,6 +57,7 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
             required={field.required}
             error={error}
             placeholder="Избери месец..."
+            disabled={disabled}
           />
         );
       }
@@ -68,6 +72,7 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
             required={field.required}
             error={error}
             placeholder="Избери година..."
+            disabled={disabled}
           />
         );
       }
@@ -80,6 +85,7 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
           onChange={(e) => onChange(parseInt(e.target.value) || 0)}
           required={field.required}
           error={error}
+          disabled={disabled}
         />
       );
 
@@ -116,7 +122,8 @@ export function DynamicField({ field, value, onChange, error }: DynamicFieldProp
             id={field.key}
             checked={!!value}
             onChange={(e) => onChange(e.target.checked)}
-            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+            disabled={disabled}
+            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <label htmlFor={field.key} className="text-sm font-medium text-gray-700">
             {field.label}
