@@ -246,7 +246,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   {subsection.type === "record_list" && hasModal && (
                     <div className="mt-4">
                       <RecordListView
-                        key={`${subsection.subsectionId}-${refreshKey}`}
                         subsection={subsection}
                         portfolioId={portfolio.id}
                         initialData={recordsData || undefined}
