@@ -83,9 +83,29 @@ export function mapToSection1(parsedData: ParsedHTMLData): Section1Mapping {
   }
 
   // Extract email
-  const emailField = parsedData.rawTextFields.find(
-    f => f.label.toLowerCase().includes('имейл') || f.label.toLowerCase().includes('email')
+  let emailField = parsedData.rawTextFields.find(
+    f => f.label.toLowerCase().includes('имейл') || f.label.toLowerCase().includes('email') || f.label.toLowerCase().includes('и-мейл')
   );
+
+  // Also check in tables (email might be in a 2-column table: "Заглавие" | "Описание")
+  if (!emailField) {
+    for (const section of parsedData.sections) {
+      for (const table of section.tables) {
+        const emailRow = table.rows.find(row => {
+          const title = (row['Заглавие'] || row['заглавие'] || '').toLowerCase();
+          return title.includes('имейл') || title.includes('email') || title.includes('и-мейл');
+        });
+        if (emailRow) {
+          const emailValue = emailRow['Описание'] || emailRow['описание'] || '';
+          if (emailValue) {
+            emailField = { label: 'И-мейл', value: emailValue };
+            break;
+          }
+        }
+      }
+      if (emailField) break;
+    }
+  }
 
   if (emailField && emailField.value) {
     fields.push({
@@ -100,9 +120,29 @@ export function mapToSection1(parsedData: ParsedHTMLData): Section1Mapping {
   }
 
   // Extract phone
-  const phoneField = parsedData.rawTextFields.find(
+  let phoneField = parsedData.rawTextFields.find(
     f => f.label.toLowerCase().includes('телефон') || f.label.toLowerCase().includes('phone')
   );
+
+  // Also check in tables
+  if (!phoneField) {
+    for (const section of parsedData.sections) {
+      for (const table of section.tables) {
+        const phoneRow = table.rows.find(row => {
+          const title = (row['Заглавие'] || row['заглавие'] || '').toLowerCase();
+          return title.includes('телефон') || title.includes('phone');
+        });
+        if (phoneRow) {
+          const phoneValue = phoneRow['Описание'] || phoneRow['описание'] || '';
+          if (phoneValue) {
+            phoneField = { label: 'Телефон', value: phoneValue };
+            break;
+          }
+        }
+      }
+      if (phoneField) break;
+    }
+  }
 
   if (phoneField && phoneField.value) {
     fields.push({
