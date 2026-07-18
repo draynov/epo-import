@@ -29,7 +29,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   // Resolve params promise
   useEffect(() => {
@@ -77,7 +76,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const handleRecordListDataChange = useCallback((subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
     if (!portfolio) return;
     subsectionDataStorage.saveData(portfolio.id, subsectionId, data);
-    setRefreshKey(prev => prev + 1); // Force re-render to show updated data
   }, [portfolio]);
 
   const handleSaveSubsection = (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
@@ -95,8 +93,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       dataToSave
     );
     
-    // Trigger re-render
-    setRefreshKey(prev => prev + 1);
     setIsEditModalOpen(false);
     setEditingSubsection(null);
   };
