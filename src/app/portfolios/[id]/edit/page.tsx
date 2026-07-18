@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
 import { PortfolioSubsectionDefinition } from "@/types";
@@ -21,6 +21,7 @@ interface PortfolioEditorPageProps {
 
 export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps) {
   const router = useRouter();
+  const { id } = use(params);
   
   // Edit modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -28,20 +29,10 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [subsectionData, setSubsectionData] = useState<Record<string, unknown> | Array<Record<string, unknown>>>({});
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
-  const [resolvedParams, setResolvedParams] = useState<{ id: string } | null>(null);
-
-  // Resolve params promise
-  useEffect(() => {
-    params.then((p) => {
-      setResolvedParams(p);
-    });
-  }, [params]);
 
   // Load portfolio
   useEffect(() => {
-    if (!resolvedParams) return;
-
-    const found = portfolioStorage.getById(resolvedParams.id);
+    const found = portfolioStorage.getById(id);
     if (!found) {
       router.push("/");
       return;
@@ -49,7 +40,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
 
     setPortfolio(found);
     setLoading(false);
-  }, [resolvedParams, router]);
+  }, [id, router]);
 
   if (loading) {
     return (
@@ -74,9 +65,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
 
   // For record_list - handles data changes inline
   const handleRecordListDataChange = useCallback((subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
-    if (!resolvedParams) return;
-    subsectionDataStorage.saveData(resolvedParams.id, subsectionId, data);
-  }, [resolvedParams]);
+    subsectionDataStorage.saveData(id, subsectionId, data);
+  }, [id]);
 
   const handleSaveSubsection = (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
     if (!portfolio || !editingSubsection) return;
