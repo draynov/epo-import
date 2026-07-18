@@ -142,27 +142,27 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
           let description = '';
           
           if (descriptionContainer) {
-            // Get all text content, including nested paragraphs
-            const paragraphs = descriptionContainer.querySelectorAll('p');
-            if (paragraphs.length > 0) {
-              description = Array.from(paragraphs)
-                .map(p => p.textContent?.trim())
+            // Get all text content, including nested paragraphs and divs
+            const textElements = descriptionContainer.querySelectorAll('p, div');
+            if (textElements.length > 0) {
+              description = Array.from(textElements)
+                .map(el => el.textContent?.trim())
                 .filter(text => text && text.length > 0)
-                .join('\n\n');
+                .join('\n');
             } else {
               // Fallback to full text content
               description = descriptionContainer.textContent?.trim() || '';
             }
           }
           
-          // Fallback: if no description container, try to get any p tags in the item
+          // Fallback: if no description container, try to get any p/div tags in the item
           if (!description) {
-            const allParagraphs = item.querySelectorAll('p');
-            if (allParagraphs.length > 0) {
-              description = Array.from(allParagraphs)
-                .map(p => p.textContent?.trim())
+            const allTextElements = item.querySelectorAll('p, div');
+            if (allTextElements.length > 0) {
+              description = Array.from(allTextElements)
+                .map(el => el.textContent?.trim())
                 .filter(text => text && text.length > 0)
-                .join('\n\n');
+                .join('\n');
             }
           }
           
