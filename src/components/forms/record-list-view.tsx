@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { RecordListSubsectionDefinition } from "@/types";
 import { Button } from "@/components/ui";
 import { RecordModal } from "./record-modal";
@@ -17,6 +17,7 @@ export interface RecordListViewProps {
   subsectionId: string;
   initialData?: { records?: Array<Record<string, unknown>> };
   onDataChange: (subsectionId: string, data: { records: Array<Record<string, unknown>> }) => void;
+  onRegisterAddTrigger?: (trigger: () => void) => void; // Register the add handler with parent
 }
 
 export function RecordListView({
@@ -25,6 +26,7 @@ export function RecordListView({
   portfolioId,
   initialData,
   onDataChange,
+  onRegisterAddTrigger,
 }: RecordListViewProps) {
   // UNCONTROLLED: Initialize from initialData, then manage own state
   const [records, setRecords] = useState<Array<Record<string, unknown>>>(
@@ -41,11 +43,18 @@ export function RecordListView({
     return monthObj ? monthObj.label : String(month);
   };
 
-  const handleAddRecord = () => {
+  const handleAddRecord = useCallback(() => {
     setEditingIndex(null);
     setEditingRecord(undefined);
     setIsRecordModalOpen(true);
-  };
+  }, []);
+
+  // Register add handler with parent on mount
+  useEffect(() => {
+    if (onRegisterAddTrigger) {
+      onRegisterAddTrigger(handleAddRecord);
+    }
+  }, [onRegisterAddTrigger, handleAddRecord]);
 
   const handleEditRecord = (index: number) => {
     setEditingIndex(index);
@@ -79,56 +88,10 @@ export function RecordListView({
 
   return (
     <div className="space-y-4">
-      {/* Header with Add button */}
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-gray-900">{subsection.title}</h3>
-        <Button 
-          size="sm"
-          onClick={handleAddRecord} 
-          className="bg-green-600 hover:bg-green-700 text-white"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4 inline mr-1"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Добави
-        </Button>
-      </div>
-
-      {/* Description */}
-      {subsection.description && records.length === 0 && (
-        <p className="text-sm text-gray-600">{subsection.description}</p>
-      )}
-
       {/* Records Table or Empty State */}
       {records.length === 0 ? (
-        <div className="text-center py-16 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            className="h-16 w-16 mx-auto text-gray-400 mb-4" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            stroke="currentColor"
-          >
-            <path 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              strokeWidth={1.5} 
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <p className="text-gray-600 text-lg mb-2">Няма добавени записи</p>
-          <p className="text-gray-500 text-sm">Натиснете бутона "Добави" за да добавите нов запис</p>
+        <div className="text-center py-4 bg-gray-50 rounded-lg border border-gray-300">
+          <p className="text-gray-600">Няма добавени записи</p>
         </div>
       ) : (
         <div className="border rounded-lg overflow-hidden bg-white">

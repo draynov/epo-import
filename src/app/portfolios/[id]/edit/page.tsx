@@ -29,6 +29,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [subsectionData, setSubsectionData] = useState<Record<string, unknown> | Array<Record<string, unknown>>>({});
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Record list add handlers - store refs to trigger modals
+  const [recordListTriggers, setRecordListTriggers] = useState<Record<string, () => void>>({});
 
   // Load portfolio
   useEffect(() => {
@@ -172,7 +175,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       )}
                     </div>
                     
-                    {/* Button: Only for direct_fields */}
+                    {/* Buttons */}
                     {subsection.type === "direct_fields" && hasModal && (
                       <Button 
                         size="sm" 
@@ -194,6 +197,29 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           />
                         </svg>
                         Редактирай
+                      </Button>
+                    )}
+                    {subsection.type === "record_list" && hasModal && (
+                      <Button 
+                        size="sm"
+                        onClick={() => recordListTriggers[subsection.subsectionId]?.()}
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 4v16m8-8H4"
+                          />
+                        </svg>
+                        Добави
                       </Button>
                     )}
                     {!hasModal && (
@@ -238,6 +264,12 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                         subsectionId={subsection.subsectionId}
                         initialData={recordsData || undefined}
                         onDataChange={handleRecordListDataChange}
+                        onRegisterAddTrigger={(trigger) => {
+                          setRecordListTriggers(prev => ({
+                            ...prev,
+                            [subsection.subsectionId]: trigger
+                          }));
+                        }}
                       />
                     </div>
                   )}
