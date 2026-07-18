@@ -109,6 +109,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
           <div className="flex gap-3">
             <Link
               href={`/portfolios/${id}/import`}
+              prefetch={false}
               className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-purple-600 hover:bg-purple-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-600"
             >
               <svg
@@ -127,7 +128,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
               </svg>
               Импорт от URL
             </Link>
-            <Link href="/" className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500">
+            <Link href="/" prefetch={false} className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500">
               ← Назад
             </Link>
           </div>
