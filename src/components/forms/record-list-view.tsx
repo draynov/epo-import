@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { RecordListSubsectionDefinition } from "@/types";
 import { Button } from "@/components/ui";
 import { RecordModal } from "./record-modal";
@@ -24,20 +24,13 @@ export function RecordListView({
   initialData,
   onDataChange,
 }: RecordListViewProps) {
+  // UNCONTROLLED: Initialize from initialData, then manage own state
   const [records, setRecords] = useState<Array<Record<string, unknown>>>(
     initialData?.records || []
   );
   const [isRecordModalOpen, setIsRecordModalOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingRecord, setEditingRecord] = useState<Record<string, unknown> | undefined>();
-
-  // Update records when initialData changes - but only check length to avoid infinite loops
-  useEffect(() => {
-    const newRecords = initialData?.records || [];
-    if (newRecords.length !== records.length) {
-      setRecords(newRecords);
-    }
-  }, [initialData?.records?.length, records.length]);
 
   // Format month helper
   const formatMonth = (month: number | string): string => {
