@@ -88,9 +88,15 @@ export function RecordListView({
 
   // Determine which fields to display in table
   const getDisplayFields = () => {
-    // Priority fields to show: institution, position, godina_from, godina_to
-    const priorityKeys = ['institution', 'position', 'dlyvnost', 'godina_from', 'godina_to', 'name', 'specialty'];
-    return subsection.fields.filter(f => priorityKeys.includes(f.key));
+    // Priority fields to show: institution, position first, then others
+    const priorityKeys = ['institution', 'position', 'godina_from', 'godina_to', 'dlyvnost', 'name', 'specialty'];
+    const filtered = subsection.fields.filter(f => priorityKeys.includes(f.key));
+    // Sort to ensure institution and position are first
+    return filtered.sort((a, b) => {
+      const aIndex = priorityKeys.indexOf(a.key);
+      const bIndex = priorityKeys.indexOf(b.key);
+      return aIndex - bIndex;
+    });
   };
 
   // Format cell value based on field type and record data
@@ -104,6 +110,25 @@ export function RecordListView({
 
     if (!value && value !== 0 && value !== false) {
       return '-';
+    }
+
+    // Special handling for godina_from and godina_to - include month if present
+    if (field.key === 'godina_from' && typeof value === 'number') {
+      const month = record.mesec_from;
+      if (typeof month === 'number' && month >= 1 && month <= 12) {
+        const monthStr = month.toString().padStart(2, '0');
+        return `${monthStr}.${value}`;
+      }
+      return String(value);
+    }
+
+    if (field.key === 'godina_to' && typeof value === 'number') {
+      const month = record.mesec_to;
+      if (typeof month === 'number' && month >= 1 && month <= 12) {
+        const monthStr = month.toString().padStart(2, '0');
+        return `${monthStr}.${value}`;
+      }
+      return String(value);
     }
 
     if (field.key.includes('mesec') && typeof value === 'number') {

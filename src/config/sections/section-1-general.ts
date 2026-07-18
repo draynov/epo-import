@@ -204,7 +204,7 @@ export const SECTION_1_GENERAL_INFO: PortfolioSectionDefinition = {
         },
         {
           key: "institution",
-          label: "Име на институцията",
+          label: "Институция",
           type: "text",
           required: true,
           maxLength: 150,
