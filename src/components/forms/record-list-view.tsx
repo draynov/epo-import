@@ -14,12 +14,14 @@ import { MONTHS } from "@/config/date-options";
 export interface RecordListViewProps {
   subsection: RecordListSubsectionDefinition;
   portfolioId: string;
+  subsectionId: string;
   initialData?: { records?: Array<Record<string, unknown>> };
-  onDataChange: (data: { records: Array<Record<string, unknown>> }) => void;
+  onDataChange: (subsectionId: string, data: { records: Array<Record<string, unknown>> }) => void;
 }
 
 export function RecordListView({
   subsection,
+  subsectionId,
   portfolioId,
   initialData,
   onDataChange,
@@ -54,7 +56,7 @@ export function RecordListView({
   const handleDeleteRecord = (index: number) => {
     if (confirm("Сигурни ли сте, че искате да изтриете този запис?")) {
       const newRecords = records.filter((_, i) => i !== index);
-      setRecords(newRecords);
+      setRecords(nesubsectionId, wRecords);
       onDataChange({ records: newRecords });
     }
   };
@@ -72,7 +74,7 @@ export function RecordListView({
     }
     
     setRecords(newRecords);
-    onDataChange({ records: newRecords });
+    onDataChange(subsectionId, { records: newRecords });
   };
 
   return (

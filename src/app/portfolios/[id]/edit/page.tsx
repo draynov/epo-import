@@ -245,8 +245,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       <RecordListView
                         subsection={subsection}
                         portfolioId={portfolio.id}
+                        subsectionId={subsection.subsectionId}
                         initialData={recordsData || undefined}
-                        onDataChange={(data) => handleRecordListDataChange(subsection.subsectionId, data)}
+                        onDataChange={handleRecordListDataChange}
                       />
                     </div>
                   )}
