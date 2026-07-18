@@ -6,6 +6,8 @@ import { Portfolio } from "@/types/portfolio-data";
 import { portfolioStorage } from "@/lib/storage/portfolio-storage";
 import { parseHTMLContent, ParsedHTMLData } from "@/lib/parsers/html-parser";
 import { ParsedDataView } from "@/components/import/parsed-data-view";
+import { mapToSection1, Section1Mapping } from "@/lib/mapping/section-1-mapper";
+import { MappingPreview } from "@/components/import/mapping-preview";
 
 interface ImportPdfPageProps {
   params: Promise<{ id: string }>;
@@ -22,6 +24,8 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   const [fileData, setFileData] = useState<any>(null);
   const [parsedData, setParsedData] = useState<ParsedHTMLData | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [section1Mapping, setSection1Mapping] = useState<Section1Mapping | null>(null);
+  const [showMappingPreview, setShowMappingPreview] = useState(false);
 
   // Load portfolio
   useEffect(() => {
@@ -98,9 +102,26 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   };
 
   const handleImport = () => {
-    // TODO: Implement mapping and import logic
-    console.log("Импорт на данни от файл:", fileData);
-    alert("Импортът от файл ще бъде имплементиран скоро!");
+    if (!parsedData) {
+      alert("Няма парсирани данни");
+      return;
+    }
+
+    // Map parsed data to Section 1
+    const mapping = mapToSection1(parsedData);
+    setSection1Mapping(mapping);
+    setShowMappingPreview(true);
+  };
+
+  const handleConfirmImport = (selectedMapping: Section1Mapping) => {
+    // TODO: Implement actual import to portfolio storage
+    console.log("Импорт на избраните данни:", selectedMapping);
+    alert(`Ще бъдат импортирани:\n- ${selectedMapping.fields.length} полета\n- ${selectedMapping.records.length} таблици с записи\n\nИмплементацията на импорта предстои...`);
+    setShowMappingPreview(false);
+  };
+
+  const handleCancelMapping = () => {
+    setShowMappingPreview(false);
   };
 
   if (loading) {
@@ -234,7 +255,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
           )}
 
           {/* Data Preview */}
-          {fileData && !fileLoading && (
+          {fileData && !fileLoading && !showMappingPreview && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -242,12 +263,26 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                 </h3>
                 <button
                   onClick={handleImport}
-                  className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600"
+                  disabled={!parsedData || fileData.fileType !== "HTML"}
+                  className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     className="h-4 w-4 mr-2 inline"
                     fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                    />
+                  </svg>
+                  Мапнай към Секция 1
+                </button>
+              </div>
                     viewBox="0 0 24 24"
                     stroke="currentColor"
                   >
@@ -317,6 +352,15 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                 </div>
               )}
             </div>
+          )}
+
+          {/* Mapping Preview */}
+          {showMappingPreview && section1Mapping && (
+            <MappingPreview
+              mapping={section1Mapping}
+              onConfirm={handleConfirmImport}
+              onCancel={handleCancelMapping}
+            />
           )}
         </div>
       </div>
