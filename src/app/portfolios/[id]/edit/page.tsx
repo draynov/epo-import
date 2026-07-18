@@ -74,9 +74,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
 
   // For record_list - handles data changes inline
   const handleRecordListDataChange = useCallback((subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
-    if (!portfolio) return;
-    subsectionDataStorage.saveData(portfolio.id, subsectionId, data);
-  }, [portfolio]);
+    if (!resolvedParams) return;
+    subsectionDataStorage.saveData(resolvedParams.id, subsectionId, data);
+  }, [resolvedParams]);
 
   const handleSaveSubsection = (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
     if (!portfolio || !editingSubsection) return;
