@@ -124,14 +124,14 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
           onClick={onCancel}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
         >
-          Отказ
+          ← Назад
         </button>
         <button
           onClick={handleConfirm}
           disabled={totalSelected === 0}
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
         >
-          Импортирай избраните ({totalSelected})
+          Напред към Преглед →
         </button>
       </div>
     </div>

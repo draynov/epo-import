@@ -7,7 +7,7 @@ import { portfolioStorage } from "@/lib/storage/portfolio-storage";
 import { parseHTMLContent, ParsedHTMLData } from "@/lib/parsers/html-parser";
 import { ParsedDataView } from "@/components/import/parsed-data-view";
 import { mapToSection1, Section1Mapping } from "@/lib/mapping/section-1-mapper";
-import { MappingPreview } from "@/components/import/mapping-preview";
+import { ImportWizard } from "@/components/import/import-wizard";
 
 interface ImportPdfPageProps {
   params: Promise<{ id: string }>;
@@ -25,7 +25,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   const [parsedData, setParsedData] = useState<ParsedHTMLData | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
   const [section1Mapping, setSection1Mapping] = useState<Section1Mapping | null>(null);
-  const [showMappingPreview, setShowMappingPreview] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
 
   // Load portfolio
   useEffect(() => {
@@ -110,18 +110,18 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
     // Map parsed data to Section 1
     const mapping = mapToSection1(parsedData);
     setSection1Mapping(mapping);
-    setShowMappingPreview(true);
+    setShowWizard(true);
   };
 
   const handleConfirmImport = (selectedMapping: Section1Mapping) => {
     // TODO: Implement actual import to portfolio storage
     console.log("Импорт на избраните данни:", selectedMapping);
     alert(`Ще бъдат импортирани:\n- ${selectedMapping.fields.length} полета\n- ${selectedMapping.records.length} таблици с записи\n\nИмплементацията на импорта предстои...`);
-    setShowMappingPreview(false);
+    setShowWizard(false);
   };
 
-  const handleCancelMapping = () => {
-    setShowMappingPreview(false);
+  const handleCancelWizard = () => {
+    setShowWizard(false);
   };
 
   if (loading) {
@@ -254,8 +254,8 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
             </div>
           )}
 
-          {/* Data Preview */}
-          {fileData && !fileLoading && !showMappingPreview && (
+          {/* Data Preview or Wizard */}
+          {!showWizard && fileData && !fileLoading && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">
@@ -280,20 +280,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                       d="M13 10V3L4 14h7v7l9-11h-7z"
                     />
                   </svg>
-                  Мапнай към Секция 1
-                </button>
-              </div>
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                    />
-                  </svg>
-                  Импортирай данните
+                  Започни импорт (Стъпка 1)
                 </button>
               </div>
 
@@ -335,7 +322,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
               {parsedData && fileData.fileType === "HTML" && (
                 <div className="border border-gray-200 rounded-lg overflow-hidden">
                   <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                    <h4 className="text-base font-semibold text-gray-900">Структурирани данни</h4>
+                    <h4 className="text-base font-semibold text-gray-900">Преглед на данните</h4>
                   </div>
                   <div className="p-4 max-h-[500px] overflow-y-auto">
                     <ParsedDataView data={parsedData} />
@@ -354,12 +341,13 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
             </div>
           )}
 
-          {/* Mapping Preview */}
-          {showMappingPreview && section1Mapping && (
-            <MappingPreview
-              mapping={section1Mapping}
-              onConfirm={handleConfirmImport}
-              onCancel={handleCancelMapping}
+          {/* Import Wizard (3 steps) */}
+          {showWizard && parsedData && section1Mapping && (
+            <ImportWizard
+              parsedData={parsedData}
+              section1Mapping={section1Mapping}
+              onConfirmImport={handleConfirmImport}
+              onCancel={handleCancelWizard}
             />
           )}
         </div>
