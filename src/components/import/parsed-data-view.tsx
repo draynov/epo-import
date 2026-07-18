@@ -11,21 +11,35 @@ interface ParsedDataViewProps {
 export function ParsedDataView({ data }: ParsedDataViewProps) {
   const { sections, rawTables, rawTextFields, rawLists } = data;
 
+  // Separate profile fields
+  const nameField = rawTextFields.find(f => f.label === 'Име' || f.label.toLowerCase().includes('име'));
+  const descriptionField = rawTextFields.find(f => f.label === 'Описание' || f.label.toLowerCase().includes('описание'));
+  const otherFields = rawTextFields.filter(f => f !== nameField && f !== descriptionField);
+
   return (
     <div className="space-y-6">
-      {/* Profile/Raw Text Fields - Always show at top */}
-      {rawTextFields.length > 0 && (
+      {/* Profile Section - Name and Description */}
+      {(nameField || descriptionField) && (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-green-50 px-4 py-3 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Профилна информация</h3>
+          <div className="bg-green-50 px-6 py-4 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900">{nameField?.value || 'Профил'}</h2>
           </div>
-          <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {rawTextFields.map((field, index) => (
-                <TextFieldDisplay key={index} field={field} />
-              ))}
+          {descriptionField && (
+            <div className="p-6">
+              <div className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed">
+                {descriptionField.value}
+              </div>
             </div>
-          </div>
+          )}
+          {otherFields.length > 0 && (
+            <div className="px-6 pb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {otherFields.map((field, index) => (
+                  <TextFieldDisplay key={index} field={field} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
