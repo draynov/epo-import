@@ -13,22 +13,6 @@ export function ParsedDataView({ data }: ParsedDataViewProps) {
 
   return (
     <div className="space-y-6">
-      {/* Profile/Raw Text Fields - Always show at top */}
-      {rawTextFields.length > 0 && (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
-          <div className="bg-green-50 px-4 py-3 border-b border-gray-200">
-            <h3 className="text-lg font-semibold text-gray-900">Профилна информация</h3>
-          </div>
-          <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {rawTextFields.map((field, index) => (
-                <TextFieldDisplay key={index} field={field} />
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Sections */}
       {sections.map((section, sectionIndex) => (
         <div key={sectionIndex} className="border border-gray-200 rounded-lg overflow-hidden">
