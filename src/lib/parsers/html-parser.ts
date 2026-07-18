@@ -40,9 +40,19 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
   const rawTextFields: ParsedTextField[] = [];
   const rawLists: string[] = [];
 
-  // Extract all tables
-  const tables = doc.querySelectorAll('table');
+  // Try to find main content area
+  let contentRoot: Element | Document = doc;
+  const mainContent = doc.querySelector('main, [role="main"], #content, .content, #main, .main');
+  if (mainContent) {
+    contentRoot = mainContent;
+  }
+
+  // Extract all tables from main content
+  const tables = contentRoot.querySelectorAll('table');
   tables.forEach((table) => {
+    // Skip tables in nav/header/footer
+    if (table.closest('nav, header, footer, [class*="nav"], [class*="menu"]')) return;
+    
     const parsedTable = parseTable(table);
     if (parsedTable.rows.length > 0) {
       rawTables.push(parsedTable);
@@ -50,19 +60,36 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
   });
 
   // Extract text fields (looking for common patterns like dt/dd, label/value, etc.)
-  extractTextFields(doc, rawTextFields);
+  extractTextFields(contentRoot as Element, rawTextFields);
 
   // Extract lists
-  const lists = doc.querySelectorAll('ul, ol');
+  const lists = contentRoot.querySelectorAll('ul, ol');
   lists.forEach((list) => {
+    // Skip navigation lists (common patterns)
+    const parent = list.closest('nav, header, [class*="nav"], [class*="menu"], [id*="nav"], [id*="menu"]');
+    if (parent) return; // Skip navigation menus
+    
+    // Skip if list is in header/footer
+    if (list.closest('header, footer')) return;
+    
     const items = Array.from(list.querySelectorAll('li')).map(li => li.textContent?.trim() || '');
     if (items.length > 0 && items.some(item => item.length > 0)) {
-      rawLists.push(...items);
+      // Skip common navigation patterns
+      const isNavigation = items.some(item => 
+        item.toLowerCase().includes('профил') ||
+        item.toLowerCase().includes('форма') ||
+        item.toLowerCase().includes('информация') ||
+        (items.length < 10 && item.split(' ').length < 3) // Short menu items
+      );
+      
+      if (!isNavigation) {
+        rawLists.push(...items);
+      }
     }
   });
 
   // Try to identify sections based on headings
-  const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  const headings = contentRoot.querySelectorAll('h1, h2, h3, h4, h5, h6');
   if (headings.length > 0) {
     headings.forEach((heading) => {
       const section: ParsedSection = {
@@ -175,9 +202,9 @@ function parseTable(table: HTMLTableElement): ParsedTable {
 /**
  * Extract text fields from common patterns (dt/dd, div pairs, etc.)
  */
-function extractTextFields(doc: Document, fields: ParsedTextField[]): void {
+function extractTextFields(root: Element | Document, fields: ParsedTextField[]): void {
   // Pattern 1: Definition lists (dt/dd)
-  const dls = doc.querySelectorAll('dl');
+  const dls = root.querySelectorAll('dl');
   dls.forEach((dl) => {
     const dts = dl.querySelectorAll('dt');
     const dds = dl.querySelectorAll('dd');
@@ -194,13 +221,13 @@ function extractTextFields(doc: Document, fields: ParsedTextField[]): void {
   });
 
   // Pattern 2: Label + input/span pairs
-  const labels = doc.querySelectorAll('label');
+  const labels = root.querySelectorAll('label');
   labels.forEach((label) => {
     const forAttr = label.getAttribute('for');
     const labelText = label.textContent?.trim() || '';
     
     if (forAttr) {
-      const input = doc.getElementById(forAttr);
+      const input = (root as Document).getElementById?.(forAttr) || (root as Element).querySelector(`#${forAttr}`);
       if (input) {
         const value = input.getAttribute('value') || input.textContent?.trim() || '';
         if (labelText && value) {
@@ -220,7 +247,7 @@ function extractTextFields(doc: Document, fields: ParsedTextField[]): void {
   });
 
   // Pattern 3: Divs with class/id containing "field", "label", "value" etc.
-  const fieldDivs = doc.querySelectorAll('[class*="field"], [class*="row"], [class*="item"]');
+  const fieldDivs = root.querySelectorAll('[class*="field"], [class*="row"], [class*="item"]');
   fieldDivs.forEach((div) => {
     const labelEl = div.querySelector('[class*="label"], strong, b');
     const valueEl = div.querySelector('[class*="value"], span:not([class*="label"])');
