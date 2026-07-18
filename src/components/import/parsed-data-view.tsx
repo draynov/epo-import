@@ -98,10 +98,13 @@ export function ParsedDataView({ data }: ParsedDataViewProps) {
  * Display a single text field
  */
 function TextFieldDisplay({ field }: { field: ParsedTextField }) {
+  // Check if it's a long text (more than 200 chars) to display differently
+  const isLongText = field.value.length > 200;
+  
   return (
-    <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
+    <div className={`bg-gray-50 border border-gray-200 rounded-md p-3 ${isLongText ? 'col-span-2' : ''}`}>
       <div className="text-xs font-medium text-gray-500 mb-1">{field.label}</div>
-      <div className="text-sm text-gray-900">{field.value}</div>
+      <div className="text-sm text-gray-900 whitespace-pre-wrap">{field.value}</div>
     </div>
   );
 }

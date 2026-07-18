@@ -130,12 +130,9 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
       const timelineItems = timelineSection.querySelectorAll('.line.row[class*="view_settings"]');
       
       if (timelineItems.length > 0) {
-        const table: ParsedTable = {
-          title: sectionTitle,
-          headers: ['Заглавие', 'Период', 'Описание'],
-          rows: [],
-        };
-
+        // Collect all items first to analyze structure
+        const items: Array<{ title: string; time: string; description: string }> = [];
+        
         timelineItems.forEach((item) => {
           const title = item.querySelector('h3')?.textContent?.trim() || '';
           const time = item.querySelector('h4')?.textContent?.trim() || '';
@@ -170,15 +167,67 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
           }
           
           if (title || time || description) {
-            table.rows.push({
-              'Заглавие': title,
-              'Период': time,
-              'Описание': description,
-            });
+            items.push({ title, time, description });
           }
         });
 
-        if (table.rows.length > 0) {
+        if (items.length === 0) return;
+
+        // Analyze structure: check if items have time/period
+        const hasTime = items.some(item => item.time && item.time.length > 0);
+        const hasTitle = items.some(item => item.title && item.title.length > 0);
+        
+        // Decide on structure
+        if (!hasTitle && items.length === 1) {
+          // Single item with only description - add as text field
+          const existingSection = sections.find(s => s.title === sectionTitle);
+          if (existingSection) {
+            existingSection.textFields.push({
+              label: sectionTitle,
+              value: items[0].description,
+            });
+          } else {
+            sections.push({
+              title: sectionTitle,
+              textFields: [{ label: sectionTitle, value: items[0].description }],
+              tables: [],
+              lists: [],
+            });
+          }
+        } else if (hasTime) {
+          // Has time periods - use 3 columns
+          const table: ParsedTable = {
+            title: sectionTitle,
+            headers: ['Заглавие', 'Период', 'Описание'],
+            rows: items.map(item => ({
+              'Заглавие': item.title,
+              'Период': item.time,
+              'Описание': item.description,
+            })),
+          };
+          
+          const existingSection = sections.find(s => s.title === sectionTitle);
+          if (existingSection) {
+            existingSection.tables.push(table);
+          } else {
+            sections.push({
+              title: sectionTitle,
+              textFields: [],
+              tables: [table],
+              lists: [],
+            });
+          }
+        } else {
+          // No time periods - use 2 columns
+          const table: ParsedTable = {
+            title: sectionTitle,
+            headers: ['Заглавие', 'Описание'],
+            rows: items.map(item => ({
+              'Заглавие': item.title,
+              'Описание': item.description,
+            })),
+          };
+          
           const existingSection = sections.find(s => s.title === sectionTitle);
           if (existingSection) {
             existingSection.tables.push(table);
