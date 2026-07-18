@@ -4,14 +4,14 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
 import { PortfolioSubsectionDefinition } from "@/types";
 import { portfolioStorage } from "@/lib/storage/portfolio-storage";
 import { subsectionDataStorage } from "@/lib/storage/subsection-data-storage";
 import { Button } from "@/components/ui";
-import { EditSubsectionModal } from "@/components/forms";
+import { EditSubsectionModal, RecordListView } from "@/components/forms";
 import { PORTFOLIO_CONFIGURATION } from "@/config/portfolio-schema";
 import { MONTHS } from "@/config/date-options";
 
@@ -59,17 +59,24 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     );
   }
   
+  // Only for direct_fields - opens modal
   const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
-    if (!portfolio) return;
+    if (!portfolio || subsection.type !== "direct_fields") return;
     
     setEditingSubsection(subsection);
     
     // Load existing data
     const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
-    setSubsectionData(data || (subsection.type === "record_list" ? [] : {}));
+    setSubsectionData(data || {});
     
     setIsEditModalOpen(true);
   };
+
+  // For record_list - handles data changes inline
+  const handleRecordListDataChange = useCallback((subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
+    if (!portfolio) return;
+    subsectionDataStorage.saveData(portfolio.id, subsectionId, data);
+  }, [portfolio]);
 
   const handleSaveSubsection = (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
     if (!portfolio || !editingSubsection) return;
@@ -89,39 +96,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     // Trigger re-render by updating a dummy state
     setIsEditModalOpen(false);
     setEditingSubsection(null);
-  };
-
-  const handleEditRecord = (subsection: PortfolioSubsectionDefinition, index: number) => {
-    if (!portfolio) return;
-    
-    const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
-    const recordsData = data as { records?: Array<Record<string, unknown>> } | null;
-    const record = recordsData?.records?.[index];
-    
-    if (record) {
-      setEditingSubsection({ ...subsection, editingRecordIndex: index } as any);
-      setSubsectionData(recordsData?.records || []);
-      setIsEditModalOpen(true);
-    }
-  };
-
-  const handleDeleteRecord = (subsection: PortfolioSubsectionDefinition, index: number) => {
-    if (!portfolio) return;
-    if (!confirm("Сигурни ли сте, че искате да изтриете този запис?")) return;
-    
-    const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
-    const recordsData = data as { records?: Array<Record<string, unknown>> } | null;
-    const records = recordsData?.records || [];
-    
-    const newRecords = records.filter((_, i) => i !== index);
-    subsectionDataStorage.saveData(
-      portfolio.id,
-      subsection.subsectionId,
-      { records: newRecords }
-    );
-    
-    // Force re-render
-    setPortfolio({ ...portfolio });
   };
 
   if (!portfolio) return null;
@@ -208,7 +182,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       )}
                     </div>
                     
-                    {hasModal ? (
+                    {/* Button: Only for direct_fields */}
+                    {subsection.type === "direct_fields" && hasModal && (
                       <Button 
                         size="sm" 
                         onClick={() => handleEditSubsection(subsection)}
@@ -225,15 +200,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             strokeLinecap="round" 
                             strokeLinejoin="round" 
                             strokeWidth={2} 
-                            d={subsection.type === "record_list" 
-                              ? "M12 4v16m8-8H4"
-                              : "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                            }
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                           />
                         </svg>
-                        {subsection.type === "record_list" ? "Добави запис" : "Редактирай"}
+                        Редактирай
                       </Button>
-                    ) : (
+                    )}
+                    {!hasModal && (
                       <Button size="sm" variant="secondary" disabled>
                         Скоро
                       </Button>
@@ -266,90 +239,15 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                     </div>
                   )}
                   
-                  {hasData && subsection.type === "record_list" && (
-                    <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-md">
-                      <div className="bg-white rounded overflow-hidden">
-                        <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-100">
-                              <tr>
-                                {subsection.fields.slice(0, 5).map((field) => (
-                                  <th
-                                    key={field.key}
-                                    className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                                  >
-                                    {field.label}
-                                  </th>
-                                ))}
-                                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                  Действия
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
-                              {(recordsData?.records || []).map((record: Record<string, unknown>, idx: number) => (
-                                <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                                  {subsection.fields.slice(0, 5).map((field) => (
-                                    <td
-                                      key={field.key}
-                                      className="px-4 py-3 text-sm text-gray-900"
-                                    >
-                                      {field.key.includes("mesec") && typeof record[field.key] === "number"
-                                        ? formatMonth(record[field.key] as number)
-                                        : field.type === "boolean"
-                                        ? (record[field.key] ? "Да" : "Не")
-                                        : String(record[field.key] || "-")
-                                      }
-                                    </td>
-                                  ))}
-                                  <td className="px-4 py-3 text-right text-sm">
-                                    <button
-                                      onClick={() => handleEditRecord(subsection, idx)}
-                                      className="text-blue-600 hover:text-blue-800 mr-3"
-                                      title="Редактирай"
-                                    >
-                                      <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        className="h-5 w-5 inline" 
-                                        fill="none" 
-                                        viewBox="0 0 24 24" 
-                                        stroke="currentColor"
-                                      >
-                                        <path 
-                                          strokeLinecap="round" 
-                                          strokeLinejoin="round" 
-                                          strokeWidth={2} 
-                                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" 
-                                        />
-                                      </svg>
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteRecord(subsection, idx)}
-                                      className="text-red-600 hover:text-red-800"
-                                      title="Изтрий"
-                                    >
-                                      <svg 
-                                        xmlns="http://www.w3.org/2000/svg" 
-                                        className="h-5 w-5 inline" 
-                                        fill="none" 
-                                        viewBox="0 0 24 24" 
-                                        stroke="currentColor"
-                                      >
-                                        <path 
-                                          strokeLinecap="round" 
-                                          strokeLinejoin="round" 
-                                          strokeWidth={2} 
-                                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" 
-                                        />
-                                      </svg>
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
+                  {/* RecordListView for record_list (inline, no modal) */}
+                  {subsection.type === "record_list" && hasModal && (
+                    <div className="mt-4">
+                      <RecordListView
+                        subsection={subsection}
+                        portfolioId={portfolio.id}
+                        initialData={recordsData || undefined}
+                        onDataChange={(data) => handleRecordListDataChange(subsection.subsectionId, data)}
+                      />
                     </div>
                   )}
                 </div>
