@@ -139,26 +139,27 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             {/* Subsections */}
             <div className="p-6 space-y-4">
               {section.subsections.map((subsection) => {
-                const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
-                
-                // Type guard for record list data
-                const recordsData = data as { records?: Array<Record<string, unknown>> } | null;
-                
-                // Check if subsection has data based on its type
-                const hasData = data && (
-                  subsection.type === "record_list" 
-                    ? Array.isArray(recordsData?.records) && recordsData.records.length > 0
-                    : Object.keys(data).length > 0
-                );
-                
-                // Only Section 1 has working modals for now
-                const hasModal = section.sectionId === "section-1";
+                try {
+                  const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
+                  
+                  // Type guard for record list data
+                  const recordsData = data as { records?: Array<Record<string, unknown>> } | null;
+                  
+                  // Check if subsection has data based on its type
+                  const hasData = data && (
+                    subsection.type === "record_list" 
+                      ? Array.isArray(recordsData?.records) && recordsData.records.length > 0
+                      : Object.keys(data).length > 0
+                  );
+                  
+                  // Only Section 1 has working modals for now
+                  const hasModal = section.sectionId === "section-1";
 
-                return (
-                  <div
-                  key={subsection.subsectionId}
-                  className="border border-gray-200 rounded-md p-4"
-                >
+                  return (
+                    <div
+                    key={subsection.subsectionId}
+                    className="border border-gray-200 rounded-md p-4"
+                  >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
@@ -251,6 +252,14 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   )}
                 </div>
               );
+                } catch (error) {
+                  console.error(`Error rendering subsection ${subsection.subsectionId}:`, error);
+                  return (
+                    <div key={subsection.subsectionId} className="border border-red-200 rounded-md p-4 bg-red-50">
+                      <p className="text-red-600">Грешка при зареждане на {subsection.title}</p>
+                    </div>
+                  );
+                }
             })}
           </div>
         </div>
