@@ -56,8 +56,8 @@ export function RecordListView({
   const handleDeleteRecord = (index: number) => {
     if (confirm("Сигурни ли сте, че искате да изтриете този запис?")) {
       const newRecords = records.filter((_, i) => i !== index);
-      setRecords(nesubsectionId, wRecords);
-      onDataChange({ records: newRecords });
+      setRecords(newRecords);
+      onDataChange(subsectionId, { records: newRecords });
     }
   };
 
