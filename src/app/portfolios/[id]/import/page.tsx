@@ -2,7 +2,6 @@
 
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Portfolio } from "@/types/portfolio-data";
 import { portfolioStorage } from "@/lib/storage/portfolio-storage";
 
@@ -92,13 +91,12 @@ export default function ImportPage({ params }: ImportPageProps) {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">Импорт на данни</h1>
-          <Link
+          <a
             href={`/portfolios/${id}/edit`}
-            prefetch={false}
             className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
           >
             ← Назад към портфолио
-          </Link>
+          </a>
         </div>
       </div>
 
