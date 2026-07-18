@@ -121,34 +121,10 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
       {/* Import Section */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="bg-orange-50 px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Импорт от PDF файл</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Качете PDF файл с данни от електронно портфолио
-              </p>
-            </div>
-            <a
-              href={`/portfolios/${id}/import`}
-              className="inline-flex items-center justify-center h-9 px-4 text-sm rounded-md font-medium transition-colors bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-                />
-              </svg>
-              Импорт от URL
-            </a>
-          </div>
+          <h2 className="text-xl font-semibold text-gray-900">Импорт от PDF файл</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Качете PDF файл с данни от електронно портфолио
+          </p>
         </div>
         
         <div className="p-6 space-y-6">

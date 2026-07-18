@@ -126,34 +126,10 @@ export default function ImportPage({ params }: ImportPageProps) {
       {/* Import Section */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="bg-purple-50 px-6 py-4 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900">Импорт от URL</h2>
-              <p className="text-sm text-gray-600 mt-1">
-                Въведете URL адрес към JSON файл с данни за импорт
-              </p>
-            </div>
-            <a
-              href={`/portfolios/${id}/import-pdf`}
-              className="inline-flex items-center justify-center h-9 px-4 text-sm rounded-md font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 mr-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
-                />
-              </svg>
-              Импорт от PDF
-            </a>
-          </div>
+          <h2 className="text-xl font-semibold text-gray-900">Импорт от URL</h2>
+          <p className="text-sm text-gray-600 mt-1">
+            Въведете URL адрес към JSON файл с данни за импорт
+          </p>
         </div>
         
         <div className="p-6 space-y-6">
