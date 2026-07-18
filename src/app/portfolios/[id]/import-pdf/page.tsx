@@ -4,6 +4,8 @@ import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
 import { portfolioStorage } from "@/lib/storage/portfolio-storage";
+import { parseHTMLContent, ParsedHTMLData } from "@/lib/parsers/html-parser";
+import { ParsedDataView } from "@/components/import/parsed-data-view";
 
 interface ImportPdfPageProps {
   params: Promise<{ id: string }>;
@@ -18,6 +20,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   const [file, setFile] = useState<File | null>(null);
   const [fileLoading, setFileLoading] = useState(false);
   const [fileData, setFileData] = useState<any>(null);
+  const [parsedData, setParsedData] = useState<ParsedHTMLData | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
 
   // Load portfolio
@@ -49,6 +52,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
     setFileLoading(true);
     setFileError(null);
     setFileData(null);
+    setParsedData(null);
 
     try {
       const isPdf = uploadedFile.type === "application/pdf" || fileExtension === ".pdf";
@@ -57,6 +61,11 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
       if (isHtml) {
         // Parse HTML file
         const text = await uploadedFile.text();
+        
+        // Parse the HTML content
+        const parsed = parseHTMLContent(text);
+        setParsedData(parsed);
+        
         const fileInfo = {
           name: uploadedFile.name,
           size: uploadedFile.size,
@@ -64,7 +73,9 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
           fileType: "HTML",
           lastModified: new Date(uploadedFile.lastModified).toISOString(),
           content: text,
-          preview: text.substring(0, 500) + (text.length > 500 ? "..." : ""),
+          tablesCount: parsed.rawTables.length,
+          textFieldsCount: parsed.rawTextFields.length,
+          sectionsCount: parsed.sections.length,
         };
         setFileData(fileInfo);
       } else if (isPdf) {
@@ -250,14 +261,8 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                   Импортирай данните
                 </button>
               </div>
-              
-              <div className="max-h-96 overflow-auto bg-gray-50 border border-gray-200 rounded-md p-4">
-                <pre className="text-xs text-gray-800 whitespace-pre-wrap font-mono">
-                  {JSON.stringify(fileData, null, 2)}
-                </pre>
-              </div>
 
-              {/* Stats */}
+              {/* File Stats */}
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <div className="flex items-start">
                   <svg
@@ -280,12 +285,37 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                       <li>Размер: {(fileData.size / 1024).toFixed(2)} KB</li>
                       <li>Тип: {fileData.fileType || fileData.type}</li>
                       {fileData.fileType === "HTML" && (
-                        <li>Съдържание: {fileData.content?.length || 0} символа</li>
+                        <>
+                          <li>Секции: {fileData.sectionsCount || 0}</li>
+                          <li>Таблици: {fileData.tablesCount || 0}</li>
+                          <li>Текстови полета: {fileData.textFieldsCount || 0}</li>
+                        </>
                       )}
                     </ul>
                   </div>
                 </div>
               </div>
+              
+              {/* Parsed HTML Data Visualization */}
+              {parsedData && fileData.fileType === "HTML" && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
+                    <h4 className="text-base font-semibold text-gray-900">Структурирани данни</h4>
+                  </div>
+                  <div className="p-4 max-h-[500px] overflow-y-auto">
+                    <ParsedDataView data={parsedData} />
+                  </div>
+                </div>
+              )}
+
+              {/* Raw data for non-HTML files */}
+              {(!parsedData || fileData.fileType !== "HTML") && (
+                <div className="max-h-96 overflow-auto bg-gray-50 border border-gray-200 rounded-md p-4">
+                  <pre className="text-xs text-gray-800 whitespace-pre-wrap font-mono">
+                    {JSON.stringify(fileData, null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
           )}
         </div>
