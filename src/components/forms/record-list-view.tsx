@@ -31,10 +31,13 @@ export function RecordListView({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editingRecord, setEditingRecord] = useState<Record<string, unknown> | undefined>();
 
-  // Update records when initialData changes (from parent re-render)
+  // Update records when initialData changes - but only check length to avoid infinite loops
   useEffect(() => {
-    setRecords(initialData?.records || []);
-  }, [initialData]);
+    const newRecords = initialData?.records || [];
+    if (newRecords.length !== records.length) {
+      setRecords(newRecords);
+    }
+  }, [initialData?.records?.length, records.length]);
 
   // Format month helper
   const formatMonth = (month: number | string): string => {
