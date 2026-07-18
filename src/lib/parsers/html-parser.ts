@@ -178,6 +178,11 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
             }
           }
           
+          // Clean description: if it's the same as title or too short, clear it
+          if (description === title || description.length < 3) {
+            description = '';
+          }
+          
           if (title || time || description) {
             items.push({ title, time, description });
           }
