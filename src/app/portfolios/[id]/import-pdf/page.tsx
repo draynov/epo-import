@@ -15,10 +15,10 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
-  const [pdfFile, setPdfFile] = useState<File | null>(null);
-  const [pdfLoading, setPdfLoading] = useState(false);
-  const [pdfData, setPdfData] = useState<any>(null);
-  const [pdfError, setPdfError] = useState<string | null>(null);
+  const [file, setFile] = useState<File | null>(null);
+  const [fileLoading, setFileLoading] = useState(false);
+  const [fileData, setFileData] = useState<any>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   // Load portfolio
   useEffect(() => {
@@ -32,42 +32,64 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
     setLoading(false);
   }, [id, router]);
 
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const uploadedFile = e.target.files?.[0];
+    if (!uploadedFile) return;
 
-    if (file.type !== "application/pdf") {
-      setPdfError("Моля изберете PDF файл");
+    const validTypes = ["application/pdf", "text/html", "text/plain"];
+    const validExtensions = [".pdf", ".html", ".htm"];
+    const fileExtension = uploadedFile.name.toLowerCase().slice(uploadedFile.name.lastIndexOf("."));
+    
+    if (!validTypes.includes(uploadedFile.type) && !validExtensions.includes(fileExtension)) {
+      setFileError("Моля изберете PDF или HTML файл");
       return;
     }
 
-    setPdfFile(file);
-    setPdfLoading(true);
-    setPdfError(null);
-    setPdfData(null);
+    setFile(uploadedFile);
+    setFileLoading(true);
+    setFileError(null);
+    setFileData(null);
 
     try {
-      // TODO: Implement PDF parsing
-      // For now, just show file info
-      const fileInfo = {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: new Date(file.lastModified).toISOString(),
-      };
+      const isPdf = uploadedFile.type === "application/pdf" || fileExtension === ".pdf";
+      const isHtml = fileExtension === ".html" || fileExtension === ".htm" || uploadedFile.type === "text/html";
       
-      setPdfData(fileInfo);
+      if (isHtml) {
+        // Parse HTML file
+        const text = await uploadedFile.text();
+        const fileInfo = {
+          name: uploadedFile.name,
+          size: uploadedFile.size,
+          type: uploadedFile.type || "text/html",
+          fileType: "HTML",
+          lastModified: new Date(uploadedFile.lastModified).toISOString(),
+          content: text,
+          preview: text.substring(0, 500) + (text.length > 500 ? "..." : ""),
+        };
+        setFileData(fileInfo);
+      } else if (isPdf) {
+        // TODO: Implement PDF parsing
+        // For now, just show file info
+        const fileInfo = {
+          name: uploadedFile.name,
+          size: uploadedFile.size,
+          type: uploadedFile.type,
+          fileType: "PDF",
+          lastModified: new Date(uploadedFile.lastModified).toISOString(),
+        };
+        setFileData(fileInfo);
+      }
     } catch (err) {
-      setPdfError(err instanceof Error ? err.message : "Грешка при обработка на PDF файла");
+      setFileError(err instanceof Error ? err.message : "Грешка при обработка на файла");
     } finally {
-      setPdfLoading(false);
+      setFileLoading(false);
     }
   };
 
   const handleImport = () => {
     // TODO: Implement mapping and import logic
-    console.log("Импорт на данни от PDF:", pdfData);
-    alert("Импортът от PDF ще бъде имплементиран скоро!");
+    console.log("Импорт на данни от файл:", fileData);
+    alert("Импортът от файл ще бъде имплементиран скоро!");
   };
 
   if (loading) {
@@ -85,7 +107,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
       {/* Header */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold text-gray-900">Импорт от PDF</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Импорт от файл</h1>
           <a
             href={`/portfolios/${id}/edit`}
             className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-gray-200 text-gray-900 hover:bg-gray-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-gray-500"
@@ -121,17 +143,17 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
       {/* Import Section */}
       <div className="bg-white shadow-md rounded-lg overflow-hidden">
         <div className="bg-orange-50 px-6 py-4 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Импорт от PDF файл</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Импорт от файл</h2>
           <p className="text-sm text-gray-600 mt-1">
-            Качете PDF файл с данни от електронно портфолио
+            Качете PDF или HTML файл с данни от електронно портфолио
           </p>
         </div>
         
         <div className="p-6 space-y-6">
-          {/* PDF Upload */}
+          {/* File Upload */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              PDF файл
+              Изберете файл (PDF или HTML)
             </label>
             <div className="flex items-center justify-center w-full">
               <label className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors">
@@ -152,26 +174,26 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                   <p className="mb-2 text-sm text-gray-500">
                     <span className="font-semibold">Кликнете за избор</span> или влачете файла тук
                   </p>
-                  <p className="text-xs text-gray-500">Поддържа се само PDF файл</p>
-                  {pdfFile && (
+                  <p className="text-xs text-gray-500">Поддържат се PDF и HTML файлове</p>
+                  {file && (
                     <p className="mt-2 text-sm text-orange-600 font-medium">
-                      Избран: {pdfFile.name}
+                      Избран: {file.name}
                     </p>
                   )}
                 </div>
                 <input
                   type="file"
                   className="hidden"
-                  accept=".pdf,application/pdf"
-                  onChange={handlePdfUpload}
-                  disabled={pdfLoading}
+                  accept=".pdf,.html,.htm,application/pdf,text/html"
+                  onChange={handleFileUpload}
+                  disabled={fileLoading}
                 />
               </label>
             </div>
           </div>
 
           {/* Error Display */}
-          {pdfError && (
+          {fileError && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-md">
               <div className="flex items-start">
                 <svg
@@ -187,25 +209,25 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                     d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <p className="text-sm text-red-800">{pdfError}</p>
+                <p className="text-sm text-red-800">{fileError}</p>
               </div>
             </div>
           )}
 
           {/* Loading */}
-          {pdfLoading && (
+          {fileLoading && (
             <div className="flex items-center justify-center p-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
-              <p className="ml-4 text-gray-600">Обработка на PDF файла...</p>
+              <p className="ml-4 text-gray-600">Обработка на файла...</p>
             </div>
           )}
 
           {/* Data Preview */}
-          {pdfData && !pdfLoading && (
+          {fileData && !fileLoading && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">
-                  Данни от PDF
+                  Данни от файл
                 </h3>
                 <button
                   onClick={handleImport}
@@ -231,7 +253,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
               
               <div className="max-h-96 overflow-auto bg-gray-50 border border-gray-200 rounded-md p-4">
                 <pre className="text-xs text-gray-800 whitespace-pre-wrap font-mono">
-                  {JSON.stringify(pdfData, null, 2)}
+                  {JSON.stringify(fileData, null, 2)}
                 </pre>
               </div>
 
@@ -254,9 +276,12 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                   <div className="text-sm text-blue-800">
                     <p className="font-medium mb-1">Информация за файла:</p>
                     <ul className="list-disc list-inside space-y-1">
-                      <li>Име: {pdfData.name}</li>
-                      <li>Размер: {(pdfData.size / 1024).toFixed(2)} KB</li>
-                      <li>Тип: {pdfData.type}</li>
+                      <li>Име: {fileData.name}</li>
+                      <li>Размер: {(fileData.size / 1024).toFixed(2)} KB</li>
+                      <li>Тип: {fileData.fileType || fileData.type}</li>
+                      {fileData.fileType === "HTML" && (
+                        <li>Съдържание: {fileData.content?.length || 0} символа</li>
+                      )}
                     </ul>
                   </div>
                 </div>
