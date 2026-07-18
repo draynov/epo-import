@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
 import { portfolioStorage } from "@/lib/storage/portfolio-storage";
 import { parseHTMLContent, ParsedHTMLData } from "@/lib/parsers/html-parser";
-import { ParsedDataView } from "@/components/import/parsed-data-view";
 import { mapToSection1, Section1Mapping } from "@/lib/mapping/section-1-mapper";
 import { ImportWizard } from "@/components/import/import-wizard";
 
@@ -82,6 +81,11 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
           sectionsCount: parsed.sections.length,
         };
         setFileData(fileInfo);
+        
+        // Map to Section 1 and start wizard automatically
+        const mapping = mapToSection1(parsed);
+        setSection1Mapping(mapping);
+        setShowWizard(true);
       } else if (isPdf) {
         // TODO: Implement PDF parsing
         // For now, just show file info
@@ -102,15 +106,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   };
 
   const handleImport = () => {
-    if (!parsedData) {
-      alert("Няма парсирани данни");
-      return;
-    }
-
-    // Map parsed data to Section 1
-    const mapping = mapToSection1(parsedData);
-    setSection1Mapping(mapping);
-    setShowWizard(true);
+    // No longer needed - wizard starts automatically after file upload
   };
 
   const handleConfirmImport = (selectedMapping: Section1Mapping) => {
@@ -254,21 +250,23 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
             </div>
           )}
 
-          {/* Data Preview or Wizard */}
-          {!showWizard && fileData && !fileLoading && (
+          {/* Import Wizard (3 steps) - starts automatically after HTML file upload */}
+          {showWizard && parsedData && section1Mapping && (
+            <ImportWizard
+              parsedData={parsedData}
+              section1Mapping={section1Mapping}
+              onConfirmImport={handleConfirmImport}
+              onCancel={handleCancelWizard}
+            />
+          )}
+
+          {/* PDF file info (PDF parsing not yet implemented) */}
+          {fileData && fileData.fileType === "PDF" && !fileLoading && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Данни от файл
-                </h3>
-                <button
-                  onClick={handleImport}
-                  disabled={!parsedData || fileData.fileType !== "HTML"}
-                  className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
+              <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+                <div className="flex items-start">
                   <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2 inline"
+                    className="h-5 w-5 text-yellow-600 mr-2 mt-0.5"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -277,14 +275,16 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M13 10V3L4 14h7v7l9-11h-7z"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  Започни импорт (Стъпка 1)
-                </button>
+                  <div className="text-sm text-yellow-800">
+                    <p className="font-semibold mb-2">PDF импорт все още не е имплементиран</p>
+                    <p>Моля използвайте HTML файл за импорт на данни.</p>
+                  </div>
+                </div>
               </div>
-
-              {/* File Stats */}
+              
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
                 <div className="flex items-start">
                   <svg
@@ -306,49 +306,11 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
                       <li>Име: {fileData.name}</li>
                       <li>Размер: {(fileData.size / 1024).toFixed(2)} KB</li>
                       <li>Тип: {fileData.fileType || fileData.type}</li>
-                      {fileData.fileType === "HTML" && (
-                        <>
-                          <li>Секции: {fileData.sectionsCount || 0}</li>
-                          <li>Таблици: {fileData.tablesCount || 0}</li>
-                          <li>Текстови полета: {fileData.textFieldsCount || 0}</li>
-                        </>
-                      )}
                     </ul>
                   </div>
                 </div>
               </div>
-              
-              {/* Parsed HTML Data Visualization */}
-              {parsedData && fileData.fileType === "HTML" && (
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-                    <h4 className="text-base font-semibold text-gray-900">Преглед на данните</h4>
-                  </div>
-                  <div className="p-4 max-h-[500px] overflow-y-auto">
-                    <ParsedDataView data={parsedData} />
-                  </div>
-                </div>
-              )}
-
-              {/* Raw data for non-HTML files */}
-              {(!parsedData || fileData.fileType !== "HTML") && (
-                <div className="max-h-96 overflow-auto bg-gray-50 border border-gray-200 rounded-md p-4">
-                  <pre className="text-xs text-gray-800 whitespace-pre-wrap font-mono">
-                    {JSON.stringify(fileData, null, 2)}
-                  </pre>
-                </div>
-              )}
             </div>
-          )}
-
-          {/* Import Wizard (3 steps) */}
-          {showWizard && parsedData && section1Mapping && (
-            <ImportWizard
-              parsedData={parsedData}
-              section1Mapping={section1Mapping}
-              onConfirmImport={handleConfirmImport}
-              onCancel={handleCancelWizard}
-            />
           )}
         </div>
       </div>
