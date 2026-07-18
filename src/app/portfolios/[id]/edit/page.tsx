@@ -105,9 +105,32 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">{portfolio.name}</h1>
-          <Button variant="secondary" onClick={() => router.push("/")}>
-            ← Назад
-          </Button>
+          <div className="flex gap-3">
+            <Button 
+              variant="secondary" 
+              onClick={() => router.push(`/portfolios/${id}/import`)}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-4 w-4 mr-2 inline"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                />
+              </svg>
+              Импорт от URL
+            </Button>
+            <Button variant="secondary" onClick={() => router.push("/")}>
+              ← Назад
+            </Button>
+          </div>
         </div>
         <div className="text-sm text-gray-600">
           <p>User ID: {portfolio.epoUserId}</p>
