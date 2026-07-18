@@ -106,10 +106,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">{portfolio.name}</h1>
           <div className="flex gap-3">
-            <Button 
-              variant="secondary" 
+            <button
               onClick={() => router.push(`/portfolios/${id}/import`)}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-purple-600 hover:bg-purple-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-600"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -126,7 +125,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                 />
               </svg>
               Импорт от URL
-            </Button>
+            </button>
             <Button variant="secondary" onClick={() => router.push("/")}>
               ← Назад
             </Button>

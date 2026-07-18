@@ -150,13 +150,13 @@ export default function ImportPage({ params }: ImportPageProps) {
                   }
                 }}
               />
-              <Button
+              <button
                 onClick={handleFetchData}
                 disabled={fetchLoading}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-6"
+                className="inline-flex items-center justify-center h-10 px-6 text-base rounded-md font-medium transition-colors bg-purple-600 hover:bg-purple-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-600 disabled:pointer-events-none disabled:opacity-50"
               >
                 {fetchLoading ? "Зареждане..." : "Зареди"}
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -189,9 +189,9 @@ export default function ImportPage({ params }: ImportPageProps) {
                 <h3 className="text-lg font-semibold text-gray-900">
                   Заредени данни
                 </h3>
-                <Button
+                <button
                   onClick={handleImport}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -208,7 +208,7 @@ export default function ImportPage({ params }: ImportPageProps) {
                     />
                   </svg>
                   Импортирай данните
-                </Button>
+                </button>
               </div>
               
               <div className="max-h-[600px] overflow-auto bg-gray-50 border border-gray-200 rounded-md p-4">
