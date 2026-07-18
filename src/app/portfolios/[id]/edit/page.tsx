@@ -42,14 +42,11 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     setLoading(false);
   }, [id, router]);
 
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <p className="text-gray-600">Зареждане...</p>
-      </div>
-    );
-  }
-  
+  // For record_list - handles data changes inline
+  const handleRecordListDataChange = useCallback((subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
+    subsectionDataStorage.saveData(id, subsectionId, data);
+  }, [id]);
+
   // Only for direct_fields - opens modal
   const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
     if (!portfolio || subsection.type !== "direct_fields") return;
@@ -62,11 +59,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     
     setIsEditModalOpen(true);
   };
-
-  // For record_list - handles data changes inline
-  const handleRecordListDataChange = useCallback((subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
-    subsectionDataStorage.saveData(id, subsectionId, data);
-  }, [id]);
 
   const handleSaveSubsection = (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
     if (!portfolio || !editingSubsection) return;
@@ -87,14 +79,22 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     setEditingSubsection(null);
   };
 
-  if (!portfolio) return null;
-
   // Helper function to format month numbers to Bulgarian month names
   const formatMonth = (month: number | string): string => {
     const monthNum = typeof month === 'string' ? parseInt(month) : month;
     const monthObj = MONTHS.find(m => m.value === monthNum);
     return monthObj ? monthObj.label : String(month);
   };
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-gray-600">Зареждане...</p>
+      </div>
+    );
+  }
+
+  if (!portfolio) return null;
 
   return (
     <div className="container mx-auto px-4 py-8">
