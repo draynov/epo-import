@@ -86,6 +86,39 @@ export function RecordListView({
     onDataChange(subsectionId, { records: newRecords });
   };
 
+  // Determine which fields to display in table
+  const getDisplayFields = () => {
+    // Priority fields to show: institution, position, godina_from, godina_to
+    const priorityKeys = ['institution', 'position', 'dlyvnost', 'godina_from', 'godina_to', 'name', 'specialty'];
+    return subsection.fields.filter(f => priorityKeys.includes(f.key));
+  };
+
+  // Format cell value based on field type and record data
+  const formatCellValue = (field: any, record: Record<string, unknown>) => {
+    // Special handling for godina_to when now_to is checked
+    if (field.key === 'godina_to' && record.now_to === true) {
+      return 'До сега';
+    }
+
+    const value = record[field.key];
+
+    if (!value && value !== 0 && value !== false) {
+      return '-';
+    }
+
+    if (field.key.includes('mesec') && typeof value === 'number') {
+      return formatMonth(value);
+    }
+
+    if (field.type === 'boolean' || field.type === 'checkbox') {
+      return value ? 'Да' : 'Не';
+    }
+
+    return String(value);
+  };
+
+  const displayFields = getDisplayFields();
+
   return (
     <div className="space-y-4">
       {/* Records Table or Empty State */}
@@ -98,7 +131,7 @@ export function RecordListView({
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                {subsection.fields.slice(0, 5).map((field) => (
+                {displayFields.map((field) => (
                   <th
                     key={field.key}
                     className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider"
@@ -114,16 +147,9 @@ export function RecordListView({
             <tbody className="bg-white divide-y divide-gray-200">
               {records.map((record, idx) => (
                 <tr key={idx} className="hover:bg-gray-50 transition-colors">
-                  {subsection.fields.slice(0, 5).map((field) => (
+                  {displayFields.map((field) => (
                     <td key={field.key} className="px-4 py-3 text-sm text-gray-900">
-                      {field.key.includes("mesec") &&
-                      typeof record[field.key] === "number"
-                        ? formatMonth(record[field.key] as number)
-                        : field.type === "boolean"
-                        ? record[field.key]
-                          ? "Да"
-                          : "Не"
-                        : String(record[field.key] || "-")}
+                      {formatCellValue(field, record)}
                     </td>
                   ))}
                   <td className="px-4 py-3 text-right text-sm">
