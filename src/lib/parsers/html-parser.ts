@@ -177,6 +177,9 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
         const hasTime = items.some(item => item.time && item.time.length > 0);
         const hasTitle = items.some(item => item.title && item.title.length > 0);
         
+        // Check if this is Qualifications section (needs special parsing)
+        const isQualificationsSection = sectionTitle.toLowerCase().includes('квалификаци');
+        
         // Decide on structure
         if (!hasTitle && items.length === 1) {
           // Single item with only description - add as text field
@@ -195,27 +198,63 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
             });
           }
         } else if (hasTime) {
-          // Has time periods - use 3 columns
-          const table: ParsedTable = {
-            title: sectionTitle,
-            headers: ['Заглавие', 'Период', 'Описание'],
-            rows: items.map(item => ({
-              'Заглавие': item.title,
-              'Период': item.time,
-              'Описание': item.description,
-            })),
-          };
+          // Has time periods - use 3 columns (or 5 for qualifications)
           
-          const existingSection = sections.find(s => s.title === sectionTitle);
-          if (existingSection) {
-            existingSection.tables.push(table);
-          } else {
-            sections.push({
+          if (isQualificationsSection) {
+            // Special handling for Qualifications: split description into 3 fields
+            const table: ParsedTable = {
               title: sectionTitle,
-              textFields: [],
-              tables: [table],
-              lists: [],
-            });
+              headers: ['Период', 'Име на обучение', 'Обучаваща институция', 'Брой кредити'],
+              rows: items.map(item => {
+                // Split description by paragraphs/lines
+                const parts = item.description
+                  .split(/\n+/)
+                  .map(p => p.trim())
+                  .filter(p => p.length > 0);
+                
+                return {
+                  'Период': item.time,
+                  'Име на обучение': parts[0] || '',
+                  'Обучаваща институция': parts[1] || '',
+                  'Брой кредити': parts[2] || '',
+                };
+              }),
+            };
+            
+            const existingSection = sections.find(s => s.title === sectionTitle);
+            if (existingSection) {
+              existingSection.tables.push(table);
+            } else {
+              sections.push({
+                title: sectionTitle,
+                textFields: [],
+                tables: [table],
+                lists: [],
+              });
+            }
+          } else {
+            // Standard 3-column table
+            const table: ParsedTable = {
+              title: sectionTitle,
+              headers: ['Заглавие', 'Период', 'Описание'],
+              rows: items.map(item => ({
+                'Заглавие': item.title,
+                'Период': item.time,
+                'Описание': item.description,
+              })),
+            };
+            
+            const existingSection = sections.find(s => s.title === sectionTitle);
+            if (existingSection) {
+              existingSection.tables.push(table);
+            } else {
+              sections.push({
+                title: sectionTitle,
+                textFields: [],
+                tables: [table],
+                lists: [],
+              });
+            }
           }
         } else {
           // No time periods - use 2 columns

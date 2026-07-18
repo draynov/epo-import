@@ -11,8 +11,26 @@ interface ParsedDataViewProps {
 export function ParsedDataView({ data }: ParsedDataViewProps) {
   const { sections, rawTables, rawTextFields, rawLists } = data;
 
+  // Extract name and description for top panel
+  const nameField = rawTextFields.find(f => f.label === 'Име' || f.label.toLowerCase().includes('име'));
+  const descriptionField = rawTextFields.find(f => f.label === 'Описание' || f.label.toLowerCase().includes('описание'));
+
   return (
     <div className="space-y-6">
+      {/* Profile Panel - Name and Quote only */}
+      {(nameField || descriptionField) && (
+        <div className="border border-blue-200 bg-blue-50 rounded-lg p-6">
+          {nameField && (
+            <h2 className="text-2xl font-bold text-gray-900 mb-3">{nameField.value}</h2>
+          )}
+          {descriptionField && (
+            <p className="text-base text-gray-700 whitespace-pre-wrap leading-relaxed italic">
+              {descriptionField.value}
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Sections */}
       {sections.map((section, sectionIndex) => (
         <div key={sectionIndex} className="border border-gray-200 rounded-lg overflow-hidden">
