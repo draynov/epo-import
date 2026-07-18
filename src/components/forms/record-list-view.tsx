@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { RecordListSubsectionDefinition } from "@/types";
 import { Button } from "@/components/ui";
 import { RecordModal } from "./record-modal";
@@ -38,11 +38,6 @@ export function RecordListView({
     return monthObj ? monthObj.label : String(month);
   };
 
-  // Sync records with parent
-  useEffect(() => {
-    onDataChange({ records });
-  }, [records, onDataChange]);
-
   const handleAddRecord = () => {
     setEditingIndex(null);
     setEditingRecord(undefined);
@@ -57,22 +52,26 @@ export function RecordListView({
 
   const handleDeleteRecord = (index: number) => {
     if (confirm("Сигурни ли сте, че искате да изтриете този запис?")) {
-      setRecords((prev) => prev.filter((_, i) => i !== index));
+      const newRecords = records.filter((_, i) => i !== index);
+      setRecords(newRecords);
+      onDataChange({ records: newRecords });
     }
   };
 
   const handleSaveRecord = (record: Record<string, unknown>) => {
+    let newRecords: Array<Record<string, unknown>>;
+    
     if (editingIndex !== null) {
       // Update existing
-      setRecords((prev) => {
-        const newRecords = [...prev];
-        newRecords[editingIndex] = record;
-        return newRecords;
-      });
+      newRecords = [...records];
+      newRecords[editingIndex] = record;
     } else {
       // Add new
-      setRecords((prev) => [...prev, record]);
+      newRecords = [...records, record];
     }
+    
+    setRecords(newRecords);
+    onDataChange({ records: newRecords });
   };
 
   return (
