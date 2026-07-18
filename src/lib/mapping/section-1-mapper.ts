@@ -207,6 +207,32 @@ export function mapToSection1(parsedData: ParsedHTMLData): Section1Mapping {
       sourceTable: workHistorySection.title || 'Учителски стаж',
       confidence: 'high',
     });
+
+    // Extract current position (if any record has now_to = true)
+    const currentRecord = mappedRecords.find(rec => rec.now_to === 'true');
+    
+    if (currentRecord) {
+      // Map to current-position subsection
+      fields.push({
+        targetField: 'actual_position',
+        targetLabel: 'Заемана длъжност в момента',
+        sourceValue: currentRecord.position,
+        sourceLabel: 'Текуща длъжност (от история)',
+        confidence: 'high',
+        subsectionId: 'current-position',
+        subsectionTitle: 'Актуална длъжност',
+      });
+
+      fields.push({
+        targetField: 'actual_name',
+        targetLabel: 'Име на институцията',
+        sourceValue: currentRecord.institution,
+        sourceLabel: 'Текуща институция (от история)',
+        confidence: 'high',
+        subsectionId: 'current-position',
+        subsectionTitle: 'Актуална длъжност',
+      });
+    }
   }
 
   return { fields, records };
