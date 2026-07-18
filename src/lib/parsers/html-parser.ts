@@ -142,31 +142,37 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
           let description = '';
           
           if (descriptionContainer) {
-            // Get only direct children (p or div) to avoid duplicating nested content
-            const textElements = Array.from(descriptionContainer.children).filter(
-              el => el.tagName === 'P' || el.tagName === 'DIV'
-            );
+            // Get all <p> elements (not divs to avoid parent-child duplication)
+            const paragraphs = descriptionContainer.querySelectorAll('p');
             
-            if (textElements.length > 0) {
-              description = textElements
-                .map(el => el.textContent?.trim())
+            if (paragraphs.length > 0) {
+              description = Array.from(paragraphs)
+                .map(p => p.textContent?.trim())
                 .filter(text => text && text.length > 0)
                 .join('\n');
             } else {
-              // Fallback to full text content if no children
-              description = descriptionContainer.textContent?.trim() || '';
+              // Fallback: try direct div children
+              const divs = Array.from(descriptionContainer.children).filter(
+                el => el.tagName === 'DIV'
+              );
+              if (divs.length > 0) {
+                description = divs
+                  .map(d => d.textContent?.trim())
+                  .filter(text => text && text.length > 0)
+                  .join('\n');
+              } else {
+                // Final fallback to full text content
+                description = descriptionContainer.textContent?.trim() || '';
+              }
             }
           }
           
-          // Fallback: if no description container, try to get any p/div tags in the item
+          // Fallback: if no description container, try to get any p tags in the item
           if (!description) {
-            const allTextElements = Array.from(item.children).filter(
-              el => el.tagName === 'P' || el.tagName === 'DIV'
-            );
-            
-            if (allTextElements.length > 0) {
-              description = allTextElements
-                .map(el => el.textContent?.trim())
+            const allParagraphs = item.querySelectorAll('p');
+            if (allParagraphs.length > 0) {
+              description = Array.from(allParagraphs)
+                .map(p => p.textContent?.trim())
                 .filter(text => text && text.length > 0)
                 .join('\n');
             }
