@@ -8,8 +8,8 @@ import { use, useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
 import { PortfolioSubsectionDefinition } from "@/types";
-import { portfolioStorage } from "@/lib/storage/portfolio-storage";
-import { subsectionDataStorage } from "@/lib/storage/subsection-data-storage";
+import { supabasePortfolioStorage } from "@/lib/storage/supabase-portfolio-storage";
+import { supabaseSubsectionDataStorage } from "@/lib/storage/supabase-subsection-data-storage";
 import { Button } from "@/components/ui";
 import { EditSubsectionModal, RecordListView } from "@/components/forms";
 import { PORTFOLIO_CONFIGURATION } from "@/config/portfolio-schema";
@@ -29,41 +29,64 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [subsectionData, setSubsectionData] = useState<Record<string, unknown> | Array<Record<string, unknown>>>({});
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [loading, setLoading] = useState(true);
+  const [allSubsectionData, setAllSubsectionData] = useState<Record<string, Record<string, unknown>>>({});
   
   // Record list add handlers - store refs to trigger modals
   const [recordListTriggers, setRecordListTriggers] = useState<Record<string, () => void>>({});
 
-  // Load portfolio
+  // Load portfolio and all subsection data
   useEffect(() => {
-    const found = portfolioStorage.getById(id);
-    if (!found) {
-      router.push("/");
-      return;
-    }
+    async function loadPortfolio() {
+      const found = await supabasePortfolioStorage.getById(id);
+      if (!found) {
+        router.push("/");
+        return;
+      }
 
-    setPortfolio(found);
-    setLoading(false);
+      setPortfolio(found);
+      
+      // Load all subsection data
+      const allData: Record<string, Record<string, unknown>> = {};
+      for (const section of PORTFOLIO_CONFIGURATION.sections) {
+        for (const subsection of section.subsections) {
+          const data = await supabaseSubsectionDataStorage.getData(found.id, subsection.subsectionId);
+          if (data) {
+            allData[subsection.subsectionId] = data;
+          }
+        }
+      }
+      setAllSubsectionData(allData);
+      
+      setLoading(false);
+    }
+    loadPortfolio();
   }, [id, router]);
 
   // For record_list - handles data changes inline
-  const handleRecordListDataChange = useCallback((subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
-    subsectionDataStorage.saveData(id, subsectionId, data);
+  const handleRecordListDataChange = useCallback(async (subsectionId: string, data: { records: Array<Record<string, unknown>> }) => {
+    await supabaseSubsectionDataStorage.saveData(id, subsectionId, data);
+    
+    // Update local state
+    setAllSubsectionData(prev => ({
+      ...prev,
+      [subsectionId]: data
+    }));
   }, [id]);
 
   // Only for direct_fields - opens modal
-  const handleEditSubsection = (subsection: PortfolioSubsectionDefinition) => {
+  const handleEditSubsection = async (subsection: PortfolioSubsectionDefinition) => {
     if (!portfolio || subsection.type !== "direct_fields") return;
     
     setEditingSubsection(subsection);
     
     // Load existing data
-    const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
+    const data = await supabaseSubsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
     setSubsectionData(data || {});
     
     setIsEditModalOpen(true);
   };
 
-  const handleSaveSubsection = (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
+  const handleSaveSubsection = async (data: Record<string, unknown> | Array<Record<string, unknown>>) => {
     if (!portfolio || !editingSubsection) return;
     
     // Convert data to proper format for storage
@@ -72,11 +95,17 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
         ? { records: data as Array<Record<string, unknown>> } 
         : data as Record<string, unknown>;
     
-    subsectionDataStorage.saveData(
+    await supabaseSubsectionDataStorage.saveData(
       portfolio.id, 
       editingSubsection.subsectionId, 
       dataToSave
     );
+    
+    // Update local state
+    setAllSubsectionData(prev => ({
+      ...prev,
+      [editingSubsection.subsectionId]: dataToSave
+    }));
     
     setIsEditModalOpen(false);
     setEditingSubsection(null);
@@ -175,7 +204,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             <div className="p-6 space-y-4">
               {section.subsections.map((subsection) => {
                 try {
-                  const data = subsectionDataStorage.getData(portfolio.id, subsection.subsectionId);
+                  const data = allSubsectionData[subsection.subsectionId] || null;
                   
                   // Type guard for record list data
                   const recordsData = data as { records?: Array<Record<string, unknown>> } | null;

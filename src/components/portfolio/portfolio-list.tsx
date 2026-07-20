@@ -9,21 +9,32 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui";
 import { CreatePortfolioModal } from "./create-portfolio-modal";
 import { Portfolio, CreatePortfolioInput } from "@/types/portfolio-data";
-import { portfolioStorage } from "@/lib/storage/portfolio-storage";
+import { supabasePortfolioStorage } from "@/lib/storage/supabase-portfolio-storage";
 
 export function PortfolioList() {
   const router = useRouter();
   const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // Load portfolios
   useEffect(() => {
-    setPortfolios(portfolioStorage.getAll());
+    async function loadPortfolios() {
+      const data = await supabasePortfolioStorage.getAll();
+      setPortfolios(data);
+      setLoading(false);
+    }
+    loadPortfolios();
   }, []);
 
-  const handleCreate = (data: CreatePortfolioInput) => {
-    const portfolio = portfolioStorage.create(data);
-    setPortfolios(portfolioStorage.getAll());
+  const handleCreate = async (data: CreatePortfolioInput) => {
+    const portfolio = await supabasePortfolioStorage.create(data);
+    if (!portfolio) {
+      alert("Грешка при създаване на портфолио");
+      return;
+    }
+    const allPortfolios = await supabasePortfolioStorage.getAll();
+    setPortfolios(allPortfolios);
     
     // Redirect to editor
     router.push(`/portfolios/${portfolio.id}/edit`);
@@ -33,10 +44,11 @@ export function PortfolioList() {
     router.push(`/portfolios/${id}/edit`);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Сигурни ли сте, че искате да изтриете това портфолио?")) {
-      portfolioStorage.delete(id);
-      setPortfolios(portfolioStorage.getAll());
+      await supabasePortfolioStorage.delete(id);
+      const allPortfolios = await supabasePortfolioStorage.getAll();
+      setPortfolios(allPortfolios);
     }
   };
 
@@ -50,8 +62,14 @@ export function PortfolioList() {
         </Button>
       </div>
 
-      {/* Empty state */}
-      {portfolios.length === 0 ? (
+      {/* Loading state */}
+      {loading ? (
+        <div className="text-center py-12">
+          <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-gray-600">Зареждане...</p>
+        </div>
+      ) : portfolios.length === 0 ? (
+        /* Empty state */
         <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
           <p className="text-gray-600 mb-4">Няма създадени портфолиа</p>
           <Button onClick={() => setIsCreateModalOpen(true)}>

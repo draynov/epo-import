@@ -3,11 +3,11 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
-import { portfolioStorage } from "@/lib/storage/portfolio-storage";
+import { supabasePortfolioStorage } from "@/lib/storage/supabase-portfolio-storage";
 import { parseHTMLContent, ParsedHTMLData } from "@/lib/parsers/html-parser";
 import { mapToSection1, Section1Mapping } from "@/lib/mapping/section-1-mapper";
 import { ImportWizard } from "@/components/import/import-wizard";
-import { subsectionDataStorage } from "@/lib/storage/subsection-data-storage";
+import { supabaseSubsectionDataStorage } from "@/lib/storage/supabase-subsection-data-storage";
 
 interface ImportPdfPageProps {
   params: Promise<{ id: string }>;
@@ -29,14 +29,17 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
 
   // Load portfolio
   useEffect(() => {
-    const found = portfolioStorage.getById(id);
-    if (!found) {
-      router.push("/");
-      return;
-    }
+    async function loadPortfolio() {
+      const found = await supabasePortfolioStorage.getById(id);
+      if (!found) {
+        router.push("/");
+        return;
+      }
 
-    setPortfolio(found);
-    setLoading(false);
+      setPortfolio(found);
+      setLoading(false);
+    }
+    loadPortfolio();
   }, [id, router]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,7 +113,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
     // No longer needed - wizard starts automatically after file upload
   };
 
-  const handleConfirmImport = (selectedMapping: Section1Mapping) => {
+  const handleConfirmImport = async (selectedMapping: Section1Mapping) => {
     if (!portfolio) return;
 
     try {
@@ -125,18 +128,18 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
       });
 
       // Save direct_fields data
-      Object.entries(fieldsBySubsection).forEach(([subsectionId, data]) => {
-        subsectionDataStorage.saveData(portfolio.id, subsectionId, data);
-      });
+      for (const [subsectionId, data] of Object.entries(fieldsBySubsection)) {
+        await supabaseSubsectionDataStorage.saveData(portfolio.id, subsectionId, data);
+      }
 
       // Save record_list data
-      selectedMapping.records.forEach((recordMapping) => {
-        subsectionDataStorage.saveData(
+      for (const recordMapping of selectedMapping.records) {
+        await supabaseSubsectionDataStorage.saveData(
           portfolio.id,
           recordMapping.targetSubsection,
           { records: recordMapping.records }
         );
-      });
+      }
 
       // Success - redirect to edit page
       alert(`✓ Успешен импорт!\n\n- Импортирани полета: ${selectedMapping.fields.length}\n- Импортирани записи: ${selectedMapping.records.reduce((sum, r) => sum + r.records.length, 0)}`);

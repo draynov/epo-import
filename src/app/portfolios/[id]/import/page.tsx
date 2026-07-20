@@ -3,7 +3,7 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
-import { portfolioStorage } from "@/lib/storage/portfolio-storage";
+import { supabasePortfolioStorage } from "@/lib/storage/supabase-portfolio-storage";
 
 interface ImportPageProps {
   params: Promise<{ id: string }>;
@@ -22,14 +22,17 @@ export default function ImportPage({ params }: ImportPageProps) {
 
   // Load portfolio
   useEffect(() => {
-    const found = portfolioStorage.getById(id);
-    if (!found) {
-      router.push("/");
-      return;
-    }
+    async function loadPortfolio() {
+      const found = await supabasePortfolioStorage.getById(id);
+      if (!found) {
+        router.push("/");
+        return;
+      }
 
-    setPortfolio(found);
-    setLoading(false);
+      setPortfolio(found);
+      setLoading(false);
+    }
+    loadPortfolio();
   }, [id, router]);
 
   const handleFetchData = async () => {
