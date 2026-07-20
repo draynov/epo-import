@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { Portfolio } from "@/types/portfolio-data";
 import { supabasePortfolioStorage } from "@/lib/storage/supabase-portfolio-storage";
 import { parseHTMLContent, ParsedHTMLData } from "@/lib/parsers/html-parser";
-import { mapToSection1, Section1Mapping } from "@/lib/mapping/section-1-mapper";
-import { ImportWizard } from "@/components/import/import-wizard";
-import { supabaseSubsectionDataStorage } from "@/lib/storage/supabase-subsection-data-storage";
+import { ImportSessionStorage } from "@/lib/storage/import-session-storage";
 
 interface ImportPdfPageProps {
   params: Promise<{ id: string }>;
@@ -24,8 +22,6 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
   const [fileData, setFileData] = useState<any>(null);
   const [parsedData, setParsedData] = useState<ParsedHTMLData | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
-  const [section1Mapping, setSection1Mapping] = useState<Section1Mapping | null>(null);
-  const [showWizard, setShowWizard] = useState(false);
 
   // Load portfolio
   useEffect(() => {
@@ -86,10 +82,11 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
         };
         setFileData(fileInfo);
         
-        // Map to Section 1 and start wizard automatically
-        const mapping = mapToSection1(parsed);
-        setSection1Mapping(mapping);
-        setShowWizard(true);
+        // Initialize import session and redirect to Section 1 mapping
+        ImportSessionStorage.initSession(id, parsed);
+        
+        // Redirect to Section 1 mapping page
+        router.push(`/portfolios/${id}/import/section-1`);
       } else if (isPdf) {
         // TODO: Implement PDF parsing
         // For now, just show file info
@@ -107,51 +104,6 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
     } finally {
       setFileLoading(false);
     }
-  };
-
-  const handleImport = () => {
-    // No longer needed - wizard starts automatically after file upload
-  };
-
-  const handleConfirmImport = async (selectedMapping: Section1Mapping) => {
-    if (!portfolio) return;
-
-    try {
-      // Group fields by subsection
-      const fieldsBySubsection: Record<string, Record<string, string>> = {};
-      
-      selectedMapping.fields.forEach((field) => {
-        if (!fieldsBySubsection[field.subsectionId]) {
-          fieldsBySubsection[field.subsectionId] = {};
-        }
-        fieldsBySubsection[field.subsectionId][field.targetField] = field.sourceValue;
-      });
-
-      // Save direct_fields data
-      for (const [subsectionId, data] of Object.entries(fieldsBySubsection)) {
-        await supabaseSubsectionDataStorage.saveData(portfolio.id, subsectionId, data);
-      }
-
-      // Save record_list data
-      for (const recordMapping of selectedMapping.records) {
-        await supabaseSubsectionDataStorage.saveData(
-          portfolio.id,
-          recordMapping.targetSubsection,
-          { records: recordMapping.records }
-        );
-      }
-
-      // Success - redirect to edit page
-      alert(`Успешен импорт!\n\n- Импортирани полета: ${selectedMapping.fields.length}\n- Импортирани записи: ${selectedMapping.records.reduce((sum, r) => sum + r.records.length, 0)}`);
-      router.push(`/portfolios/${portfolio.id}/edit`);
-    } catch (err) {
-      console.error("Грешка при импорт:", err);
-      alert("Грешка при импортиране на данните. Моля опитайте отново.");
-    }
-  };
-
-  const handleCancelWizard = () => {
-    setShowWizard(false);
   };
 
   if (loading) {
@@ -298,14 +250,29 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
             </div>
           )}
 
-          {/* Import Wizard (3 steps) - starts automatically after HTML file upload */}
-          {showWizard && parsedData && section1Mapping && (
-            <ImportWizard
-              parsedData={parsedData}
-              section1Mapping={section1Mapping}
-              onConfirmImport={handleConfirmImport}
-              onCancel={handleCancelWizard}
-            />
+          {/* Success message - file uploaded and parsed */}
+          {fileData && fileData.fileType === "HTML" && !fileLoading && parsedData && (
+            <div className="bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="flex items-start">
+                <svg
+                  className="h-5 w-5 text-green-600 mr-2 mt-0.5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="text-sm text-green-800">
+                  <p className="font-semibold mb-2">Файлът е успешно обработен!</p>
+                  <p>Пренасочване към мапинг на секциите...</p>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* PDF file info (PDF parsing not yet implemented) */}
