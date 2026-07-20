@@ -3,7 +3,12 @@
  */
 
 import { PortfolioList } from "@/components/portfolio";
+import { ProtectedRoute } from "@/lib/auth/protected-route";
 
 export default function HomePage() {
-  return <PortfolioList />;
+  return (
+    <ProtectedRoute>
+      <PortfolioList />
+    </ProtectedRoute>
+  );
 }

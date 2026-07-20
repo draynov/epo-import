@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useAuth } from "@/lib/auth/auth-context";
+import { usePathname } from "next/navigation";
 
 export function Header() {
+  const { user, signOut } = useAuth();
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/login';
+
   return (
     <header className="bg-white border-b border-gray-200 shadow-sm">
       <div className="container mx-auto px-4">
@@ -33,18 +39,46 @@ export function Header() {
 
           {/* Navigation */}
           <nav className="flex items-center space-x-6">
-            <a
-              href="/"
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              Портфолиа
-            </a>
-            <a
-              href="#"
-              className="text-sm font-medium text-gray-400 cursor-not-allowed"
-            >
-              Настройки
-            </a>
+            {user && !isLoginPage && (
+              <>
+                <a
+                  href="/"
+                  className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                >
+                  Портфолиа
+                </a>
+                
+                {/* User Info */}
+                <div className="flex items-center space-x-3 border-l border-gray-300 pl-6">
+                  <div className="text-right">
+                    <div className="text-xs text-gray-500">Влезли като:</div>
+                    <div className="text-sm font-medium text-gray-900">{user.email}</div>
+                  </div>
+                  
+                  {/* Logout Button */}
+                  <button
+                    onClick={() => signOut()}
+                    className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                      />
+                    </svg>
+                    Изход
+                  </button>
+                </div>
+              </>
+            )}
           </nav>
         </div>
       </div>
