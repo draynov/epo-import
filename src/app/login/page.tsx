@@ -14,8 +14,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isRegister, setIsRegister] = useState(false);
-  const { signIn, signUp } = useAuth();
+  const { signIn } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e: FormEvent) => {
@@ -24,16 +23,9 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      if (isRegister) {
-        const { error } = await signUp(email, password);
-        if (error) throw error;
-        setError('Регистрацията е успешна! Проверете имейла си за потвърждение.');
-        setIsRegister(false);
-      } else {
-        const { error } = await signIn(email, password);
-        if (error) throw error;
-        router.push('/');
-      }
+      const { error } = await signIn(email, password);
+      if (error) throw error;
+      router.push('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Грешка при вход');
     } finally {
@@ -61,14 +53,7 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <h2 className="text-3xl font-bold text-gray-900">
-            {isRegister ? 'Регистрация' : 'Вход'}
-          </h2>
-          <p className="mt-2 text-sm text-gray-600">
-            {isRegister
-              ? 'Създайте нов акаунт за достъп до платформата'
-              : 'Импорт на портфолиа от uchilishta.bg'}
-          </p>
+          <h2 className="text-3xl font-bold text-gray-900">Вход</h2>
         </div>
 
         {/* Form */}
@@ -105,11 +90,6 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 minLength={6}
               />
-              {isRegister && (
-                <p className="mt-1 text-xs text-gray-500">
-                  Минимум 6 символа
-                </p>
-              )}
             </div>
           </div>
 
@@ -155,28 +135,10 @@ export default function LoginPage() {
                 </svg>
                 Зареждане...
               </span>
-            ) : isRegister ? (
-              'Регистрация'
             ) : (
               'Вход'
             )}
           </button>
-
-          {/* Toggle Register/Login */}
-          <div className="text-center">
-            <button
-              type="button"
-              onClick={() => {
-                setIsRegister(!isRegister);
-                setError(null);
-              }}
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              {isRegister
-                ? 'Вече имате акаунт? Влезте'
-                : 'Нямате акаунт? Регистрирайте се'}
-            </button>
-          </div>
         </form>
       </div>
     </div>
