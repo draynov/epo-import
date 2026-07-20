@@ -23,6 +23,12 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
   const [selectedRecords, setSelectedRecords] = useState<Set<string>>(
     new Set(mapping.records.map(r => r.targetSubsection))
   );
+  
+  // Editable mapping state
+  const [editableMapping, setEditableMapping] = useState<Section1Mapping>({
+    fields: [...mapping.fields],
+    records: [...mapping.records]
+  });
 
   const handleFieldToggle = (fieldKey: string) => {
     const newSelected = new Set(selectedFields);
@@ -46,18 +52,48 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
 
   const handleConfirm = () => {
     const filteredMapping: Section1Mapping = {
-      fields: mapping.fields.filter(f => selectedFields.has(f.targetField)),
-      records: mapping.records.filter(r => selectedRecords.has(r.targetSubsection)),
+      fields: editableMapping.fields.filter(f => selectedFields.has(f.targetField)),
+      records: editableMapping.records.filter(r => selectedRecords.has(r.targetSubsection)),
     };
     onConfirm(filteredMapping);
+  };
+  
+  // Update field value
+  const handleFieldValueChange = (fieldKey: string, newValue: string) => {
+    setEditableMapping(prev => ({
+      ...prev,
+      fields: prev.fields.map(f => 
+        f.targetField === fieldKey 
+          ? { ...f, sourceValue: newValue }
+          : f
+      )
+    }));
+  };
+  
+  // Add missing field with manual value
+  const handleAddMissingField = (fieldKey: string, fieldLabel: string, value: string) => {
+    const newField: FieldMapping = {
+      targetField: fieldKey,
+      targetLabel: fieldLabel,
+      sourceValue: value,
+      sourceLabel: 'Ръчно въведено',
+      confidence: 'high'
+    };
+    
+    setEditableMapping(prev => ({
+      ...prev,
+      fields: [...prev.fields, newField]
+    }));
+    
+    setSelectedFields(prev => new Set([...prev, fieldKey]));
   };
 
   // Create a map of existing mappings for quick lookup
   const fieldMappingMap = new Map<string, FieldMapping>();
-  mapping.fields.forEach(f => fieldMappingMap.set(f.targetField, f));
+  editableMapping.fields.forEach(f => fieldMappingMap.set(f.targetField, f));
 
   const recordMappingMap = new Map<string, RecordMapping>();
-  mapping.records.forEach(r => recordMappingMap.set(r.targetSubsection, r));
+  editableMapping.records.forEach(r => recordMappingMap.set(r.targetSubsection, r));
 
   // Count total fields (all fields from config, not just mapped ones)
   let totalFieldsInConfig = 0;
@@ -75,7 +111,7 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
           Преглед на мапинг за Секция 1: Обща информация
         </h2>
         <p className="text-sm text-gray-600">
-          Избрани: <span className="font-semibold">{totalSelected}</span> от {mapping.fields.length + mapping.records.length} намерени
+          Избрани: <span className="font-semibold">{totalSelected}</span> от {editableMapping.fields.length + editableMapping.records.length} намерени
           {' • '}
           Общо очаквани: <span className="font-semibold">{totalFieldsInConfig}</span> полета
         </p>
@@ -98,22 +134,24 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
                   const mapping = fieldMappingMap.get(configField.key);
                   
                   if (mapping) {
-                    // Field has mapping - show it
+                    // Field has mapping - show it with edit capability
                     return (
                       <FieldMappingRow
                         key={configField.key}
                         field={mapping}
                         isSelected={selectedFields.has(configField.key)}
                         onToggle={() => handleFieldToggle(configField.key)}
+                        onValueChange={(newValue) => handleFieldValueChange(configField.key, newValue)}
                       />
                     );
                   } else {
-                    // Field missing - show placeholder
+                    // Field missing - show with manual input
                     return (
                       <MissingFieldRow
                         key={configField.key}
                         fieldKey={configField.key}
                         fieldLabel={configField.label}
+                        onAddField={(value) => handleAddMissingField(configField.key, configField.label, value)}
                       />
                     );
                   }
@@ -207,17 +245,27 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
 }
 
 /**
- * Single field mapping row
+ * Single field mapping row - EDITABLE
  */
 function FieldMappingRow({ 
   field, 
   isSelected, 
-  onToggle 
+  onToggle,
+  onValueChange
 }: { 
   field: FieldMapping; 
   isSelected: boolean; 
   onToggle: () => void;
+  onValueChange: (newValue: string) => void;
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(field.sourceValue || '');
+
+  const handleSave = () => {
+    onValueChange(editValue);
+    setIsEditing(false);
+  };
+
   const confidenceColors = {
     high: 'text-green-600 bg-green-50',
     medium: 'text-yellow-600 bg-yellow-50',
@@ -250,13 +298,55 @@ function FieldMappingRow({
             <div className="text-xs text-gray-500">Ключ: {field.targetField}</div>
           </div>
 
-          {/* Right: Extracted Value */}
+          {/* Right: Extracted Value - EDITABLE */}
           <div className="space-y-1">
-            <div className="text-xs font-medium text-gray-500">ИЗВЛЕЧЕНА СТОЙНОСТ</div>
-            <div className="text-sm text-gray-900 font-medium break-words">
-              {field.sourceValue || '-'}
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium text-gray-500">ИЗВЛЕЧЕНА СТОЙНОСТ</div>
+              {!isEditing && (
+                <button
+                  onClick={() => {
+                    setIsEditing(true);
+                    setEditValue(field.sourceValue || '');
+                  }}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Редактирай
+                </button>
+              )}
             </div>
-            <div className="text-xs text-gray-500">Източник: {field.sourceLabel}</div>
+            
+            {isEditing ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSave}
+                    className="px-2 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700"
+                  >
+                    Запази
+                  </button>
+                  <button
+                    onClick={() => setIsEditing(false)}
+                    className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Откажи
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="text-sm text-gray-900 font-medium break-words">
+                  {field.sourceValue || '-'}
+                </div>
+                <div className="text-xs text-gray-500">Източник: {field.sourceLabel}</div>
+              </>
+            )}
           </div>
         </div>
 
@@ -348,24 +438,33 @@ function RecordMappingRow({
 }
 
 /**
- * Missing field row - for fields without mapping data
+ * Missing field row - ALLOWS MANUAL INPUT
  */
 function MissingFieldRow({ 
   fieldKey, 
-  fieldLabel 
+  fieldLabel,
+  onAddField
 }: { 
   fieldKey: string; 
   fieldLabel: string;
+  onAddField: (value: string) => void;
 }) {
+  const [isAdding, setIsAdding] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+
+  const handleAdd = () => {
+    if (inputValue.trim()) {
+      onAddField(inputValue.trim());
+      setIsAdding(false);
+      setInputValue('');
+    }
+  };
+
   return (
-    <div className="p-4 bg-gray-50 opacity-75">
+    <div className="p-4 bg-gray-50">
       <div className="flex items-start gap-4">
-        {/* Disabled Checkbox */}
-        <input
-          type="checkbox"
-          disabled
-          className="mt-1 h-4 w-4 text-gray-300 rounded border-gray-300 cursor-not-allowed"
-        />
+        {/* Disabled Checkbox - becomes enabled when value added */}
+        <div className="mt-1 h-4 w-4"></div>
 
         {/* Mapping Content */}
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -376,12 +475,53 @@ function MissingFieldRow({
             <div className="text-xs text-gray-400">Ключ: {fieldKey}</div>
           </div>
 
-          {/* Right: Missing Value */}
+          {/* Right: Manual Input */}
           <div className="space-y-1">
-            <div className="text-xs font-medium text-gray-500">ИЗВЛЕЧЕНА СТОЙНОСТ</div>
-            <div className="text-sm text-gray-500 italic">
-              Липсва подходяща информация в HTML файла
+            <div className="flex items-center justify-between">
+              <div className="text-xs font-medium text-gray-500">ИЗВЛЕЧЕНА СТОЙНОСТ</div>
+              {!isAdding && (
+                <button
+                  onClick={() => setIsAdding(true)}
+                  className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  + Добави ръчно
+                </button>
+              )}
             </div>
+            
+            {isAdding ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Въведете стойност..."
+                  className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleAdd}
+                    className="px-2 py-1 text-xs font-medium text-white bg-green-600 rounded hover:bg-green-700"
+                  >
+                    Добави
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsAdding(false);
+                      setInputValue('');
+                    }}
+                    className="px-2 py-1 text-xs font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Откажи
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-sm text-gray-500 italic">
+                Липсва подходяща информация в HTML файла
+              </div>
+            )}
           </div>
         </div>
 
