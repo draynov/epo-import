@@ -21,8 +21,8 @@ export function CreatePortfolioModal({
 }: CreatePortfolioModalProps) {
   const [formData, setFormData] = useState<CreatePortfolioInput>({
     name: "",
-    epoUserId: 0,
-    epoPortfolioId: 0,
+    epoUserId: "",
+    epoPortfolioId: "",
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreatePortfolioInput, string>>>({});
@@ -37,12 +37,12 @@ export function CreatePortfolioModal({
       newErrors.name = "Наименованието е задължително";
     }
 
-    if (!formData.epoUserId || formData.epoUserId <= 0) {
-      newErrors.epoUserId = "User ID трябва да е положително число";
+    if (!formData.epoUserId.trim()) {
+      newErrors.epoUserId = "User ID е задължително";
     }
 
-    if (!formData.epoPortfolioId || formData.epoPortfolioId <= 0) {
-      newErrors.epoPortfolioId = "Portfolio ID трябва да е положително число";
+    if (!formData.epoPortfolioId.trim()) {
+      newErrors.epoPortfolioId = "Portfolio ID е задължително";
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -54,13 +54,13 @@ export function CreatePortfolioModal({
     onSubmit(formData);
 
     // Reset
-    setFormData({ name: "", epoUserId: 0, epoPortfolioId: 0 });
+    setFormData({ name: "", epoUserId: "", epoPortfolioId: "" });
     setErrors({});
     onClose();
   };
 
   const handleClose = () => {
-    setFormData({ name: "", epoUserId: 0, epoPortfolioId: 0 });
+    setFormData({ name: "", epoUserId: "", epoPortfolioId: "" });
     setErrors({});
     onClose();
   };
@@ -91,10 +91,9 @@ export function CreatePortfolioModal({
 
         <Input
           label="User ID от EPO"
-          type="number"
-          value={formData.epoUserId || ""}
+          value={formData.epoUserId}
           onChange={(e) =>
-            setFormData({ ...formData, epoUserId: parseInt(e.target.value) || 0 })
+            setFormData({ ...formData, epoUserId: e.target.value })
           }
           error={errors.epoUserId}
           placeholder="123"
@@ -103,10 +102,9 @@ export function CreatePortfolioModal({
 
         <Input
           label="Portfolio ID от EPO"
-          type="number"
-          value={formData.epoPortfolioId || ""}
+          value={formData.epoPortfolioId}
           onChange={(e) =>
-            setFormData({ ...formData, epoPortfolioId: parseInt(e.target.value) || 0 })
+            setFormData({ ...formData, epoPortfolioId: e.target.value })
           }
           error={errors.epoPortfolioId}
           placeholder="456"
