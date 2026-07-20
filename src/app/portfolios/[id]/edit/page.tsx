@@ -234,8 +234,22 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           {subsection.type === "direct_fields" ? "Полета" : "Списък"}
                         </span>
                         {hasData && (
-                          <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">
-                            ✓ Попълнено
+                          <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3 w-3 mr-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            Попълнено
                           </span>
                         )}
                       </div>

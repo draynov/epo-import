@@ -142,7 +142,7 @@ export default function ImportPdfPage({ params }: ImportPdfPageProps) {
       }
 
       // Success - redirect to edit page
-      alert(`✓ Успешен импорт!\n\n- Импортирани полета: ${selectedMapping.fields.length}\n- Импортирани записи: ${selectedMapping.records.reduce((sum, r) => sum + r.records.length, 0)}`);
+      alert(`Успешен импорт!\n\n- Импортирани полета: ${selectedMapping.fields.length}\n- Импортирани записи: ${selectedMapping.records.reduce((sum, r) => sum + r.records.length, 0)}`);
       router.push(`/portfolios/${portfolio.id}/edit`);
     } catch (err) {
       console.error("Грешка при импорт:", err);
