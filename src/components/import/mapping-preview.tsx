@@ -71,13 +71,21 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
   };
   
   // Add missing field with manual value
-  const handleAddMissingField = (fieldKey: string, fieldLabel: string, value: string) => {
+  const handleAddMissingField = (
+    fieldKey: string, 
+    fieldLabel: string, 
+    value: string,
+    subsectionId: string,
+    subsectionTitle: string
+  ) => {
     const newField: FieldMapping = {
       targetField: fieldKey,
       targetLabel: fieldLabel,
       sourceValue: value,
       sourceLabel: 'Ръчно въведено',
-      confidence: 'high'
+      confidence: 'high',
+      subsectionId: subsectionId,
+      subsectionTitle: subsectionTitle
     };
     
     setEditableMapping(prev => ({
@@ -151,7 +159,13 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
                         key={configField.key}
                         fieldKey={configField.key}
                         fieldLabel={configField.label}
-                        onAddField={(value) => handleAddMissingField(configField.key, configField.label, value)}
+                        onAddField={(value) => handleAddMissingField(
+                          configField.key, 
+                          configField.label, 
+                          value,
+                          subsection.subsectionId,
+                          subsection.title
+                        )}
                       />
                     );
                   }
