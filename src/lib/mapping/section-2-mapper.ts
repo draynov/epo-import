@@ -50,11 +50,6 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
                       row['Професия'] || row['професия'] ||
                       row['Описание'] || row['описание'] || '';
 
-      // Debug logging
-      console.log('🔍 Education row keys:', Object.keys(row));
-      console.log('🔍 Specialty found:', specialty);
-      console.log('🔍 Institution found:', institution);
-
       // If institution is in title and specialty is in description, split
       if (!institution && specialty) {
         const parts = specialty.split(/\s+-\s+/);
