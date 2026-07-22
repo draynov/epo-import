@@ -9,6 +9,7 @@ import { use, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ImportSessionStorage } from '@/lib/storage/import-session-storage';
 import { Section1Mapping } from '@/lib/mapping/section-1-mapper';
+import { Section2Mapping } from '@/lib/mapping/section-2-mapper';
 import { supabaseSubsectionDataStorage } from '@/lib/storage/supabase-subsection-data-storage';
 
 export default function ImportReviewPage({
@@ -23,6 +24,7 @@ export default function ImportReviewPage({
   const [error, setError] = useState<string | null>(null);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
   const [section1Mapping, setSection1Mapping] = useState<Section1Mapping | null>(null);
+  const [section2Mapping, setSection2Mapping] = useState<Section2Mapping | null>(null);
 
   useEffect(() => {
     // Check if there's an active import session
@@ -38,9 +40,11 @@ export default function ImportReviewPage({
 
     // Get section mappings
     const section1 = ImportSessionStorage.getSectionMapping(1) as Section1Mapping | null;
+    const section2 = ImportSessionStorage.getSectionMapping(2) as Section2Mapping | null;
     setSection1Mapping(section1);
+    setSection2Mapping(section2);
 
-    if (!section1) {
+    if (!section1 && !section2) {
       setError('Не са намерени мапинги. Моля, завършете поне една секция.');
       setLoading(false);
       return;
@@ -50,7 +54,7 @@ export default function ImportReviewPage({
   }, []);
 
   const handleConfirmImport = async () => {
-    if (!section1Mapping) return;
+    if (!section1Mapping && !section2Mapping) return;
 
     setImporting(true);
     setError(null);
@@ -83,15 +87,51 @@ export default function ImportReviewPage({
         }
       }
 
+      // Import Section 2 data (Education)
+      if (section2Mapping) {
+        console.log('📚 Импортиране на Секция 2...');
+        
+        // Group fields by subsection
+        const fieldsBySubsection: Record<string, Record<string, string>> = {};
+        
+        section2Mapping.fields.forEach((field) => {
+          if (!fieldsBySubsection[field.subsectionId]) {
+            fieldsBySubsection[field.subsectionId] = {};
+          }
+          fieldsBySubsection[field.subsectionId][field.targetField] = field.sourceValue;
+        });
+
+        // Save direct_fields data
+        for (const [subsectionId, data] of Object.entries(fieldsBySubsection)) {
+          console.log(`📚 Записване на ${subsectionId}:`, data);
+          await supabaseSubsectionDataStorage.saveData(id, subsectionId, data);
+        }
+
+        // Save record_list data (education records)
+        for (const recordMapping of section2Mapping.records) {
+          console.log(`📚 Записване на ${recordMapping.targetSubsection}:`, recordMapping.records.length, 'записа');
+          await supabaseSubsectionDataStorage.saveData(
+            id,
+            recordMapping.targetSubsection,
+            { records: recordMapping.records }
+          );
+        }
+      }
+
       // Clear import session
       ImportSessionStorage.clearSession();
 
       // Success - redirect to edit page
+      const totalFields = (section1Mapping?.fields.length || 0) + (section2Mapping?.fields.length || 0);
+      const totalRecords = 
+        (section1Mapping?.records.reduce((sum, r) => sum + r.records.length, 0) || 0) +
+        (section2Mapping?.records.reduce((sum, r) => sum + r.records.length, 0) || 0);
+      
       alert(
         `Успешен импорт!\n\n` +
         `- Секции: ${completedSections.length}\n` +
-        `- Полета: ${section1Mapping.fields.length}\n` +
-        `- Записи: ${section1Mapping.records.reduce((sum, r) => sum + r.records.length, 0)}`
+        `- Полета: ${totalFields}\n` +
+        `- Записи: ${totalRecords}`
       );
       
       router.push(`/portfolios/${id}/edit`);
@@ -156,21 +196,20 @@ export default function ImportReviewPage({
             <div className="text-3xl font-bold text-green-600">{completedSections.length}</div>
           </div>
           
-          {section1Mapping && (
-            <>
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="text-sm text-gray-500 mb-1">Мапнати полета</div>
-                <div className="text-3xl font-bold text-blue-600">{section1Mapping.fields.length}</div>
-              </div>
-              
-              <div className="bg-white rounded-lg shadow-md p-6">
-                <div className="text-sm text-gray-500 mb-1">Мапнати записи (таблици)</div>
-                <div className="text-3xl font-bold text-purple-600">
-                  {section1Mapping.records.reduce((sum, r) => sum + r.records.length, 0)}
-                </div>
-              </div>
-            </>
-          )}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="text-sm text-gray-500 mb-1">Мапнати полета</div>
+            <div className="text-3xl font-bold text-blue-600">
+              {(section1Mapping?.fields.length || 0) + (section2Mapping?.fields.length || 0)}
+            </div>
+          </div>
+          
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <div className="text-sm text-gray-500 mb-1">Мапнати записи (таблици)</div>
+            <div className="text-3xl font-bold text-purple-600">
+              {(section1Mapping?.records.reduce((sum, r) => sum + r.records.length, 0) || 0) +
+               (section2Mapping?.records.reduce((sum, r) => sum + r.records.length, 0) || 0)}
+            </div>
+          </div>
         </div>
 
         {/* Section Details */}
@@ -208,6 +247,56 @@ export default function ImportReviewPage({
                 </h3>
                 <div className="space-y-2">
                   {section1Mapping.records.map((record, idx) => (
+                    <div key={idx} className="bg-gray-50 rounded p-3">
+                      <div className="text-sm text-gray-900 font-medium">{record.targetLabel}</div>
+                      <div className="text-xs text-gray-500">
+                        {record.records.length} {record.records.length === 1 ? 'запис' : 'записа'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Section 2 Details */}
+        {section2Mapping && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Секция 2: Образование и квалификация
+            </h2>
+            
+            {/* Fields */}
+            {section2Mapping.fields.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Полета ({section2Mapping.fields.length})</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {section2Mapping.fields.slice(0, 10).map((field, idx) => (
+                    <div key={idx} className="bg-gray-50 rounded p-3">
+                      <div className="text-xs text-gray-500">{field.targetLabel}</div>
+                      <div className="text-sm text-gray-900 font-medium truncate">
+                        {field.sourceValue || '-'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {section2Mapping.fields.length > 10 && (
+                  <p className="text-sm text-gray-500 mt-2">
+                    ... и още {section2Mapping.fields.length - 10} полета
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Records */}
+            {section2Mapping.records.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-gray-700 mb-3">
+                  Записи за образование ({section2Mapping.records.reduce((sum, r) => sum + r.records.length, 0)})
+                </h3>
+                <div className="space-y-2">
+                  {section2Mapping.records.map((record, idx) => (
                     <div key={idx} className="bg-gray-50 rounded p-3">
                       <div className="text-sm text-gray-900 font-medium">{record.targetLabel}</div>
                       <div className="text-xs text-gray-500">
