@@ -36,7 +36,9 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   
   // EPO Sync state
   const [isSyncing, setIsSyncing] = useState(false);
+  const [isSyncingPositions, setIsSyncingPositions] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [positionsSyncMessage, setPositionsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Load portfolio and all subsection data
   useEffect(() => {
@@ -221,6 +223,86 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     }
   };
 
+  // Sync position history to EPO API
+  const handleSyncPositions = async () => {
+    if (!portfolio) return;
+    
+    console.log('🟠 CLIENT: Starting positions sync...');
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setPositionsSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    // Get positions data
+    const positionsData = allSubsectionData['position-history'] as { records?: Array<Record<string, unknown>> } || {};
+    const positions = positionsData.records || [];
+    
+    console.log('🟠 CLIENT: Positions data:', positions);
+    
+    if (positions.length === 0) {
+      setPositionsSyncMessage({
+        type: 'error',
+        text: 'Няма данни за история на длъжностите. Моля, добавете поне една позиция.'
+      });
+      return;
+    }
+    
+    setIsSyncingPositions(true);
+    setPositionsSyncMessage(null);
+    
+    try {
+      console.log('🟠 CLIENT: Calling /api/epo-sync-positions...');
+      
+      const response = await fetch('/api/epo-sync-positions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
+          positions: positions,
+        }),
+      });
+      
+      console.log('🟠 CLIENT: Response status:', response.status);
+      
+      const data = await response.json();
+      
+      console.log('🟠 CLIENT: Response data:', data);
+      
+      if (data.success) {
+        setPositionsSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! ${data.message}`
+        });
+      } else {
+        setPositionsSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('🟠 CLIENT: Positions sync error:', error);
+      setPositionsSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncingPositions(false);
+      
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setPositionsSyncMessage(null);
+      }, 5000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -284,6 +366,55 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                     />
                   </svg>
                   Синхронизирай с EPO
+                </>
+              )}
+            </button>
+            <button
+              onClick={handleSyncPositions}
+              disabled={isSyncingPositions || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+              className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSyncingPositions ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Синхронизиране...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Синхронизирай позиции
                 </>
               )}
             </button>
@@ -390,6 +521,54 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                 syncMessage.type === 'success' ? 'text-green-800' : 'text-red-800'
               }`}>
                 {syncMessage.text}
+              </p>
+            </div>
+          </div>
+        )}
+        
+        {/* Positions Sync Status Message */}
+        {positionsSyncMessage && (
+          <div className={`mb-4 p-4 rounded-md ${
+            positionsSyncMessage.type === 'success' 
+              ? 'bg-blue-50 border border-blue-200' 
+              : 'bg-red-50 border border-red-200'
+          }`}>
+            <div className="flex items-center">
+              {positionsSyncMessage.type === 'success' ? (
+                <svg
+                  className="h-5 w-5 text-blue-600 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5 text-red-600 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              )}
+              <p className={`text-sm font-medium ${
+                positionsSyncMessage.type === 'success' ? 'text-blue-800' : 'text-red-800'
+              }`}>
+                {positionsSyncMessage.text}
               </p>
             </div>
           </div>
