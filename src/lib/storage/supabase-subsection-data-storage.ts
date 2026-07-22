@@ -25,7 +25,7 @@ class SupabaseSubsectionDataStorage {
       .select('data')
       .eq('portfolio_id', portfolioId)
       .eq('subsection_id', subsectionId)
-      .single();
+      .maybeSingle();
 
     if (error || !data) {
       // Not found is not an error - just return null
