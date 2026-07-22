@@ -153,7 +153,7 @@ export class EpoApiClient {
       Object.entries(payload).filter(([_, v]) => v !== undefined && v !== null)
     );
     
-    return this.post(cleanPayload as EpoApiBaseRequest);
+    return this.post(cleanPayload as EpoApiBaseRequest & Record<string, unknown>);
   }
 
   /**
