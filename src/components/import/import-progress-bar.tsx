@@ -5,9 +5,12 @@
 
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 interface ImportProgressBarProps {
   currentSection: number; // 1-6 for sections, 0 for review
   completedSections: number[];
+  portfolioId: string; // For navigation
 }
 
 const SECTIONS = [
@@ -19,7 +22,16 @@ const SECTIONS = [
   { number: 6, title: 'Самооценка' },
 ];
 
-export function ImportProgressBar({ currentSection, completedSections }: ImportProgressBarProps) {
+export function ImportProgressBar({ currentSection, completedSections, portfolioId }: ImportProgressBarProps) {
+  const router = useRouter();
+
+  const handleSectionClick = (sectionNumber: number) => {
+    // Only allow navigation to completed sections or current section
+    if (completedSections.includes(sectionNumber) || sectionNumber === currentSection) {
+      router.push(`/portfolios/${portfolioId}/import/section-${sectionNumber}`);
+    }
+  };
+
   return (
     <div className="mb-8">
       {/* Progress Bar */}
@@ -45,14 +57,17 @@ export function ImportProgressBar({ currentSection, completedSections }: ImportP
             return (
               <div key={section.number} className="flex flex-col items-center">
                 {/* Circle */}
-                <div
+                <button
+                  onClick={() => handleSectionClick(section.number)}
+                  disabled={isUpcoming}
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold text-sm transition-all ${
                     isCompleted
-                      ? 'bg-green-600 text-white'
+                      ? 'bg-green-600 text-white cursor-pointer hover:bg-green-700'
                       : isCurrent
-                      ? 'bg-blue-600 text-white ring-4 ring-blue-100'
-                      : 'bg-white text-gray-400 border-2 border-gray-300'
+                      ? 'bg-blue-600 text-white ring-4 ring-blue-100 cursor-pointer'
+                      : 'bg-white text-gray-400 border-2 border-gray-300 cursor-not-allowed'
                   }`}
+                  title={isUpcoming ? 'Завършете предишните секции' : `Кликнете, за да отидете към Секция ${section.number}`}
                 >
                   {isCompleted ? (
                     <svg
@@ -72,9 +87,7 @@ export function ImportProgressBar({ currentSection, completedSections }: ImportP
                   ) : (
                     section.number
                   )}
-                </div>
-
-                {/* Label */}
+                </button>
                 <div className="mt-2 text-center max-w-[100px]">
                   <div
                     className={`text-xs font-medium ${

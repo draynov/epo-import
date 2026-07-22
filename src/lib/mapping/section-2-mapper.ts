@@ -40,15 +40,33 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       // Extract institution name
       let institution = row['Институция'] || row['институция'] || 
                         row['Учебно заведение'] || row['учебно заведение'] ||
+                        row['Университет'] || row['университет'] ||
                         row['Заглавие'] || row['заглавие'] || '';
 
-      // Extract specialty
+      // Extract specialty - try multiple column names
       let specialty = row['Специалност'] || row['специалност'] || 
+                      row['Област'] || row['област'] ||
+                      row['Квалификация'] || row['квалификация'] ||
+                      row['Професия'] || row['професия'] ||
                       row['Описание'] || row['описание'] || '';
+
+      // Debug logging
+      console.log('🔍 Education row keys:', Object.keys(row));
+      console.log('🔍 Specialty found:', specialty);
+      console.log('🔍 Institution found:', institution);
 
       // If institution is in title and specialty is in description, split
       if (!institution && specialty) {
         const parts = specialty.split(/\s+-\s+/);
+        if (parts.length >= 2) {
+          institution = parts[0].trim();
+          specialty = parts.slice(1).join(' - ').trim();
+        }
+      }
+
+      // If specialty is still empty, try to extract from combined field
+      if (!specialty && institution && institution.includes('-')) {
+        const parts = institution.split(/\s+-\s+/);
         if (parts.length >= 2) {
           institution = parts[0].trim();
           specialty = parts.slice(1).join(' - ').trim();

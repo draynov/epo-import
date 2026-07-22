@@ -105,7 +105,7 @@ export default function Section2ImportPage({
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Progress Bar */}
-        <ImportProgressBar currentSection={2} completedSections={completedSections} />
+        <ImportProgressBar currentSection={2} completedSections={completedSections} portfolioId={id} />
 
         {/* Mapping Preview */}
         <div className="bg-white rounded-lg shadow-md p-6">
