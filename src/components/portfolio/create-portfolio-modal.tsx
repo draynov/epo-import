@@ -40,8 +40,6 @@ export function CreatePortfolioModal({
     }
   }, [isOpen, initialData]);
 
-  const [errors, setErrors] = useState<Partial<Record<keyof CreatePortfolioInput, string>>>({});
-
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
 
