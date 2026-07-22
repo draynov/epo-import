@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { Modal, Input, Button } from "@/components/ui";
 import { CreatePortfolioInput } from "@/types/portfolio-data";
 
@@ -30,14 +30,22 @@ export function CreatePortfolioModal({
   });
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreatePortfolioInput, string>>>({});
+  
+  // Track previous isOpen state to detect when modal opens
+  const prevIsOpenRef = useRef(false);
 
-  // Load initial data when modal opens in edit mode
+  // Load initial data only when modal opens (false -> true transition)
   useEffect(() => {
-    if (isOpen && initialData) {
-      setFormData(initialData);
-    } else if (isOpen && !initialData) {
-      setFormData({ name: "", epoUserId: "", epoPortfolioId: "" });
+    if (isOpen && !prevIsOpenRef.current) {
+      // Modal just opened
+      if (initialData) {
+        setFormData(initialData);
+      } else {
+        setFormData({ name: "", epoUserId: "", epoPortfolioId: "" });
+      }
+      setErrors({});
     }
+    prevIsOpenRef.current = isOpen;
   }, [isOpen, initialData]);
 
   const handleSubmit = (e: FormEvent) => {
