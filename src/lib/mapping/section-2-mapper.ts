@@ -34,21 +34,45 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       const period = row['Период'] || row['період'] || row['Време'] || '';
       const { monthFrom, yearFrom, monthTo, yearTo, nowTo } = parsePeriod(period);
 
-      // Extract type (e.g., "Бакалавър", "Магистър", "Средно образование")
+      // Try to extract type, institution, and specialty intelligently
       let educationType = row['Тип'] || row['тип'] || row['Образование'] || row['образование'] || '';
-      
-      // Extract institution name
       let institution = row['Институция'] || row['институция'] || 
                         row['Учебно заведение'] || row['учебно заведение'] ||
-                        row['Университет'] || row['университет'] ||
-                        row['Заглавие'] || row['заглавие'] || '';
-
-      // Extract specialty - try multiple column names
+                        row['Университет'] || row['университет'] || '';
       let specialty = row['Специалност'] || row['специалност'] || 
                       row['Област'] || row['област'] ||
                       row['Квалификация'] || row['квалификация'] ||
-                      row['Професия'] || row['професия'] ||
-                      row['Описание'] || row['описание'] || '';
+                      row['Професия'] || row['професия'] || '';
+
+      // Check if "Заглавие" contains education type keywords
+      const titleField = row['Заглавие'] || row['заглавие'] || '';
+      const descriptionField = row['Описание'] || row['описание'] || '';
+      
+      // Education type keywords (case insensitive)
+      const educationTypeKeywords = [
+        'основно', 'средно', 'бакалавър', 'магистър', 'доктор',
+        'професионален', 'специалист', 'образование', 'квалификация'
+      ];
+      
+      const titleLower = titleField.toLowerCase();
+      const isTitleEducationType = educationTypeKeywords.some(keyword => titleLower.includes(keyword));
+      
+      if (isTitleEducationType && titleField && descriptionField) {
+        // Title is education type, Description is institution
+        educationType = educationType || titleField;
+        institution = institution || descriptionField;
+        // Specialty remains empty or from specific column
+      } else if (titleField && descriptionField) {
+        // Standard case: Title is institution, Description is specialty
+        institution = institution || titleField;
+        specialty = specialty || descriptionField;
+      } else if (titleField) {
+        // Only title available
+        institution = institution || titleField;
+      } else if (descriptionField) {
+        // Only description available
+        institution = institution || descriptionField;
+      }
 
       // If institution is in title and specialty is in description, split
       if (!institution && specialty) {
@@ -185,28 +209,36 @@ function parsePeriod(period: string): {
 /**
  * Map education type text to numeric ID
  * Based on EDUCATION_TYPES from field-options.ts
+ * 0: Начално, 1: Основно, 2: Средно, 3: Полувисше, 
+ * 4: Висше - бакалавър, 5: Висше - магистър, 6: ОНС Доктор, 7: Доктор на науките
  */
 function mapEducationType(typeText: string): string {
   const lowerType = typeText.toLowerCase().trim();
 
   // Map common education types
-  if (lowerType.includes('средно') || lowerType.includes('гимназия')) {
-    return '1'; // Средно образование
+  if (lowerType.includes('начално')) {
+    return '0'; // Начално образование
   }
-  if (lowerType.includes('професионален бакалавър') || lowerType.includes('проф') && lowerType.includes('бакалавър')) {
-    return '2'; // Професионален бакалавър
+  if (lowerType.includes('основно')) {
+    return '1'; // Основно образование
+  }
+  if (lowerType.includes('средно') || lowerType.includes('гимназия')) {
+    return '2'; // Средно образование
+  }
+  if (lowerType.includes('полувисше')) {
+    return '3'; // Полувисше образование
   }
   if (lowerType.includes('бакалавър') || lowerType.includes('bachelor')) {
-    return '3'; // Бакалавър
+    return '4'; // Висше - бакалавър
   }
   if (lowerType.includes('магистър') || lowerType.includes('master')) {
-    return '4'; // Магистър
+    return '5'; // Висше - магистър
+  }
+  if (lowerType.includes('онс') && lowerType.includes('доктор')) {
+    return '6'; // ОНС Доктор
   }
   if (lowerType.includes('доктор') || lowerType.includes('phd') || lowerType.includes('doctorate')) {
-    return '5'; // Доктор
-  }
-  if (lowerType.includes('специалист')) {
-    return '6'; // Специалист
+    return '7'; // Доктор на науките
   }
 
   // Default to empty (user can select manually)
