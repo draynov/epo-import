@@ -5,24 +5,7 @@
 
 import { ParsedHTMLData } from '@/lib/parsers/html-parser';
 import { SECTION_2_EDUCATION } from '@/config/sections/section-2-education';
-
-export interface FieldMapping {
-  targetField: string; // Key in Section 2
-  targetLabel: string; // Label in Section 2
-  sourceValue: string; // Extracted value from HTML
-  sourceLabel: string; // Where it came from
-  confidence: 'high' | 'medium' | 'low';
-  subsectionId: string;
-  subsectionTitle: string;
-}
-
-export interface RecordMapping {
-  targetSubsection: string;
-  targetLabel: string;
-  records: Record<string, string>[]; // Array of mapped records
-  sourceTable: string; // Source table name
-  confidence: 'high' | 'medium' | 'low';
-}
+import { FieldMapping, RecordMapping } from './section-1-mapper';
 
 export interface Section2Mapping {
   fields: FieldMapping[];
