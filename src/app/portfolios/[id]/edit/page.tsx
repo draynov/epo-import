@@ -10,7 +10,6 @@ import { Portfolio } from "@/types/portfolio-data";
 import { PortfolioSubsectionDefinition } from "@/types";
 import { supabasePortfolioStorage } from "@/lib/storage/supabase-portfolio-storage";
 import { supabaseSubsectionDataStorage } from "@/lib/storage/supabase-subsection-data-storage";
-import { epoApiClient, isEpoApiSuccess } from "@/lib/api/epo-api-client";
 import { Button } from "@/components/ui";
 import { EditSubsectionModal, RecordListView } from "@/components/forms";
 import { PORTFOLIO_CONFIGURATION } from "@/config/portfolio-schema";
@@ -140,21 +139,30 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     setSyncMessage(null);
     
     try {
-      const response = await epoApiClient.syncPortfolioData(
-        portfolio.id,
-        portfolio.epoPortfolioId,
-        portfolio.epoUserId
-      );
+      // Call Next.js API route (avoids CORS issues)
+      const response = await fetch('/api/epo-sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          portfolioId: portfolio.id,
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
+        }),
+      });
       
-      if (isEpoApiSuccess(response)) {
+      const data = await response.json();
+      
+      if (data.success) {
         setSyncMessage({
           type: 'success',
-          text: `Успешна синхронизация! ${response.Message}`
+          text: `Успешна синхронизация! ${data.message}`
         });
       } else {
         setSyncMessage({
           type: 'error',
-          text: `Грешка от API: ${response.Error}`
+          text: `Грешка от API: ${data.error}`
         });
       }
     } catch (error) {
