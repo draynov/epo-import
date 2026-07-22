@@ -11,6 +11,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { portfolioId, epoPortfolioId, epoUserId } = body;
 
+    console.log('🔄 EPO Sync Request:', { portfolioId, epoPortfolioId, epoUserId });
+
     // Validate input
     if (!portfolioId || !epoPortfolioId || !epoUserId) {
       return NextResponse.json(
@@ -26,6 +28,8 @@ export async function POST(request: NextRequest) {
       epoUserId
     );
 
+    console.log('✅ EPO API Response:', response);
+
     if (isEpoApiSuccess(response)) {
       return NextResponse.json({ success: true, message: response.Message });
     } else {
@@ -35,7 +39,7 @@ export async function POST(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error('EPO sync error:', error);
+    console.error('❌ EPO sync error:', error);
     return NextResponse.json(
       { 
         success: false, 
