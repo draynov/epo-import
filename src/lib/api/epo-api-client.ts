@@ -132,16 +132,12 @@ export class EpoApiClient {
     // Load all subsection data from Supabase
     const subsectionData = await this.loadAllSubsectionData(portfolioId);
     
-    console.log('📦 Loaded subsection data:', subsectionData);
-    
     // Transform to EPO API format
     const transformedData = transformPortfolioToEpoApi(
       portfolioId,
       epoUserId,
       subsectionData
     );
-    
-    console.log('🔄 Transformed data:', transformedData);
     
     // Build request payload
     const payload: Partial<EpoPortfolioRequest> = {
@@ -156,8 +152,6 @@ export class EpoApiClient {
     const cleanPayload = Object.fromEntries(
       Object.entries(payload).filter(([_, v]) => v !== undefined && v !== null)
     );
-    
-    console.log('📤 Sending to EPO API:', cleanPayload);
     
     return this.post(cleanPayload as EpoApiBaseRequest & Record<string, unknown>);
   }

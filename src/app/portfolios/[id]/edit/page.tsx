@@ -135,24 +135,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       return;
     }
     
-    // 🔍 DEBUG: Check what data we have locally
-    console.log('🔍 CLIENT: All subsection data keys:', Object.keys(allSubsectionData));
-    console.log('📦 CLIENT: basic-info:', allSubsectionData['basic-info']);
-    console.log('📦 CLIENT: work-experience:', allSubsectionData['work-experience']);
-    console.log('📦 CLIENT: current-position:', allSubsectionData['current-position']);
-    console.log('📦 CLIENT: favorite-quote:', allSubsectionData['favorite-quote']);
-    
-    // Check Supabase directly
-    const basicInfo = await supabaseSubsectionDataStorage.getData(portfolio.id, 'basic-info');
-    const workExp = await supabaseSubsectionDataStorage.getData(portfolio.id, 'work-experience');
-    const currentPos = await supabaseSubsectionDataStorage.getData(portfolio.id, 'current-position');
-    const quote = await supabaseSubsectionDataStorage.getData(portfolio.id, 'favorite-quote');
-    
-    console.log('💾 SUPABASE: basic-info:', basicInfo);
-    console.log('💾 SUPABASE: work-experience:', workExp);
-    console.log('💾 SUPABASE: current-position:', currentPos);
-    console.log('💾 SUPABASE: favorite-quote:', quote);
-    
     setIsSyncing(true);
     setSyncMessage(null);
     
