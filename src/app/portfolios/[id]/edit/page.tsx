@@ -10,6 +10,7 @@ import { Portfolio } from "@/types/portfolio-data";
 import { PortfolioSubsectionDefinition } from "@/types";
 import { supabasePortfolioStorage } from "@/lib/storage/supabase-portfolio-storage";
 import { supabaseSubsectionDataStorage } from "@/lib/storage/supabase-subsection-data-storage";
+import { epoApiClient, isEpoApiSuccess } from "@/lib/api/epo-api-client";
 import { Button } from "@/components/ui";
 import { EditSubsectionModal, RecordListView } from "@/components/forms";
 import { PORTFOLIO_CONFIGURATION } from "@/config/portfolio-schema";
@@ -33,6 +34,10 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   
   // Record list add handlers - store refs to trigger modals
   const [recordListTriggers, setRecordListTriggers] = useState<Record<string, () => void>>({});
+  
+  // EPO Sync state
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Load portfolio and all subsection data
   useEffect(() => {
@@ -117,6 +122,56 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     const monthObj = MONTHS.find(m => m.value === monthNum);
     return monthObj ? monthObj.label : String(month);
   };
+  
+  // Sync portfolio data to EPO API
+  const handleSyncToEpo = async () => {
+    if (!portfolio) return;
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    setIsSyncing(true);
+    setSyncMessage(null);
+    
+    try {
+      const response = await epoApiClient.syncPortfolioData(
+        portfolio.id,
+        portfolio.epoPortfolioId,
+        portfolio.epoUserId
+      );
+      
+      if (isEpoApiSuccess(response)) {
+        setSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! ${response.Message}`
+        });
+      } else {
+        setSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${response.Error}`
+        });
+      }
+    } catch (error) {
+      console.error('EPO sync error:', error);
+      setSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncing(false);
+      
+      // Auto-hide success message after 5 seconds
+      setTimeout(() => {
+        setSyncMessage(null);
+      }, 5000);
+    }
+  };
 
   if (loading) {
     return (
@@ -135,6 +190,55 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">{portfolio.name}</h1>
           <div className="flex gap-3">
+            <button
+              onClick={handleSyncToEpo}
+              disabled={isSyncing || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+              className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSyncing ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 mr-2"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Синхронизиране...
+                </>
+              ) : (
+                <>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-2"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                    />
+                  </svg>
+                  Синхронизирай с EPO
+                </>
+              )}
+            </button>
             <a
               href={`/portfolios/${id}/import`}
               className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-purple-600 hover:bg-purple-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-600"
@@ -194,9 +298,58 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             </a>
           </div>
         </div>
+        
+        {/* EPO Sync Status Messages */}
+        {syncMessage && (
+          <div className={`mb-4 p-4 rounded-md ${
+            syncMessage.type === 'success' 
+              ? 'bg-green-50 border border-green-200' 
+              : 'bg-red-50 border border-red-200'
+          }`}>
+            <div className="flex items-center">
+              {syncMessage.type === 'success' ? (
+                <svg
+                  className="h-5 w-5 text-green-600 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5 text-red-600 mr-2"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              )}
+              <p className={`text-sm font-medium ${
+                syncMessage.type === 'success' ? 'text-green-800' : 'text-red-800'
+              }`}>
+                {syncMessage.text}
+              </p>
+            </div>
+          </div>
+        )}
+        
         <div className="text-sm text-gray-600">
-          <p>User ID: {portfolio.epoUserId}</p>
-          <p>Portfolio ID: {portfolio.epoPortfolioId}</p>
+          <p>User ID: {portfolio.epoUserId || <span className="text-red-600">Не е въведен</span>}</p>
+          <p>Portfolio ID: {portfolio.epoPortfolioId || <span className="text-red-600">Не е въведен</span>}</p>
         </div>
       </div>
 

@@ -157,21 +157,19 @@ export class EpoApiClient {
   }
 
   /**
-   * Load all subsection data for a portfolio from Supabase
+   * Load subsection data for portfolio module from Supabase
+   * Зарежда: лични данни (1.1) + трудова история (1.2) + рефлексия (1.6)
    */
   private async loadAllSubsectionData(
     portfolioId: string
   ): Promise<Record<string, Record<string, unknown>>> {
     const data: Record<string, Record<string, unknown>> = {};
     
-    // Load all subsections from Section 1
+    // Load subsections needed for portfolio module
     const subsections = [
-      'section_1_subsection_1_1', // Personal data
-      'section_1_subsection_1_2', // Work history
-      'section_1_subsection_1_3', // Professional development
-      'section_1_subsection_1_4', // Qualifications
-      'section_1_subsection_1_5', // Achievements
-      'section_1_subsection_1_6', // Reflection
+      'section_1_subsection_1_1', // Personal data - име, email, phone, гражданство, стаж
+      'section_1_subsection_1_2', // Work history - актуална длъжност и институция
+      'section_1_subsection_1_6', // Reflection - любим цитат (motto)
     ];
     
     for (const subsectionId of subsections) {

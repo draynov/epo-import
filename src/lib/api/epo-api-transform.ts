@@ -7,50 +7,48 @@ import { EpoPortfolioRequest, ActualPosition, ActualType, TeacherFlag } from './
 
 /**
  * Transform portfolio data from Supabase to EPO API format
+ * Изпраща: лични данни + стаж + актуална длъжност + любим цитат
  */
 export function transformPortfolioToEpoApi(
   portfolioId: string,
   userId: string,
   subsectionData: Record<string, Record<string, unknown>>
 ): Partial<EpoPortfolioRequest> {
-  // Get Section 1 subsection data
+  // Get Section 1 subsections
   const personalData = subsectionData['section_1_subsection_1_1'] || {};
-  const currentPosition = subsectionData['section_1_subsection_1_2'] || {};
-  const reflection = subsectionData['section_1_subsection_1_6'] || {};
+  const workHistoryData = subsectionData['section_1_subsection_1_2'] || {};
+  const reflectionData = subsectionData['section_1_subsection_1_6'] || {};
   
-  // Extract work history for current position
-  const workHistory = (currentPosition as any).workHistory as Array<any> || [];
+  // Extract work history for current position (nowTo = true)
+  const workHistory = (workHistoryData as any).records as Array<any> || [];
   const currentJob = workHistory.find((job: any) => job.nowTo === true);
   
   const payload: Partial<EpoPortfolioRequest> = {
-    // Personal data
-    portfolio_name: personalData.firstName as string,
-    portfolio_surname: personalData.middleName as string,
-    portfolio_family: personalData.lastName as string,
-    email: personalData.email as string,
-    phone: personalData.phone as string,
-    nationality: personalData.nationality as string,
+    // Лични данни (subsection 1.1)
+    portfolio_name: personalData.firstName as string || undefined,
+    portfolio_surname: personalData.middleName as string || undefined,
+    portfolio_family: personalData.lastName as string || undefined,
+    email: personalData.email as string || undefined,
+    phone: personalData.phone as string || undefined,
+    nationality: personalData.nationality as string || undefined,
     
-    // Current position (from work history)
-    actual_position: parsePosition(currentJob?.position as string),
-    actual_position_other: currentJob?.positionOther as string,
-    actual_type: parseInstitutionType(currentJob?.institutionType as string),
-    actual_name: currentJob?.institution as string,
+    // Трудов стаж (subsection 1.1)
+    internship_total: personalData.totalExperience as string || undefined,
+    internship_teaching: personalData.specialtyExperience as string || undefined,
     
-    // Experience
-    internship_total: personalData.totalExperience as string,
-    internship_teaching: personalData.specialtyExperience as string,
+    // Актуална длъжност (subsection 1.2 - от work history)
+    actual_position: currentJob ? parsePosition(currentJob.position as string) : undefined,
+    actual_position_other: currentJob?.positionOther as string || undefined,
+    actual_type: currentJob ? parseInstitutionType(currentJob.institutionType as string) : undefined,
+    actual_name: currentJob?.institution as string || undefined,
     
-    // Reflection texts
-    citat: reflection.motto as string,
-    teachingmethods: reflection.teachingMethods as string,
-    teachingphilosophy: reflection.teachingPhilosophy as string,
-    selfmonitoring: reflection.selfAssessment as string,
-    futureplans: reflection.developmentPlans as string,
+    // Любим цитат (subsection 1.6)
+    citat: reflectionData.motto as string || undefined,
   };
   
-  // Specialties - extract from education or qualifications
-  // TODO: Map specialties when education section is implemented
+  // NOTE: НЕ изпращаме:
+  // ❌ teachingmethods, teachingphilosophy, selfmonitoring, futureplans
+  // ❌ specialty1-5, teacher1-5
   
   return payload;
 }
