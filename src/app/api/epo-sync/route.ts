@@ -4,43 +4,77 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { epoApiClient, isEpoApiSuccess } from '@/lib/api/epo-api-client';
+import { EPO_API_CONFIG, EpoApiResponse } from '@/lib/api/epo-api-types';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { portfolioId, epoPortfolioId, epoUserId } = body;
+    const { epoPortfolioId, epoUserId, portfolioData } = body;
 
     console.log('🔵 SERVER: Received sync request');
-    console.log('🔵 SERVER: portfolioId:', portfolioId);
     console.log('🔵 SERVER: epoPortfolioId:', epoPortfolioId);
     console.log('🔵 SERVER: epoUserId:', epoUserId);
+    console.log('🔵 SERVER: portfolioData:', portfolioData);
 
     // Validate input
-    if (!portfolioId || !epoPortfolioId || !epoUserId) {
+    if (!epoPortfolioId || !epoUserId) {
       return NextResponse.json(
-        { error: 'Missing required fields: portfolioId, epoPortfolioId, epoUserId' },
+        { error: 'Missing required fields: epoPortfolioId, epoUserId' },
         { status: 400 }
       );
     }
 
-    // Call EPO API
-    const response = await epoApiClient.syncPortfolioData(
-      portfolioId,
-      epoPortfolioId,
-      epoUserId
-    );
+    // Build EPO API payload
+    const payload: Record<string, string | number> = {
+      token: EPO_API_CONFIG.TOKEN,
+      portfolio: epoPortfolioId,
+      users: epoUserId,
+      cmd: 'portfolio',
+    };
 
-    console.log('✅ SERVER: EPO API Response:', response);
+    // Add portfolio data fields (filter out undefined/null)
+    if (portfolioData) {
+      Object.entries(portfolioData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          payload[key] = value;
+        }
+      });
+    }
 
-    if (isEpoApiSuccess(response)) {
-      return NextResponse.json({ success: true, message: response.Message });
-    } else {
+    console.log('🔵 SERVER: Sending to EPO API:', payload);
+
+    // Send to EPO API
+    const formData = new URLSearchParams();
+    Object.entries(payload).forEach(([key, value]) => {
+      formData.append(key, String(value));
+    });
+
+    const response = await fetch(EPO_API_CONFIG.BASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString(),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json() as EpoApiResponse;
+
+    console.log('✅ SERVER: EPO API Response:', data);
+
+    if ('Message' in data) {
+      return NextResponse.json({ success: true, message: data.Message });
+    } else if ('Error' in data) {
       return NextResponse.json(
-        { success: false, error: response.Error },
+        { success: false, error: data.Error },
         { status: 400 }
       );
     }
+
+    throw new Error('Invalid response from EPO API');
   } catch (error) {
     console.error('❌ SERVER: EPO sync error:', error);
     return NextResponse.json(

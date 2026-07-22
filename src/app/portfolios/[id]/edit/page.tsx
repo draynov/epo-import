@@ -148,6 +148,12 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     console.log('🟢 CLIENT: current-position:', allSubsectionData['current-position']);
     console.log('🟢 CLIENT: favorite-quote:', allSubsectionData['favorite-quote']);
     
+    // Get data from local state
+    const basicInfo = allSubsectionData['basic-info'] || {};
+    const workExperience = allSubsectionData['work-experience'] || {};
+    const currentPosition = allSubsectionData['current-position'] || {};
+    const favoriteQuote = allSubsectionData['favorite-quote'] || {};
+    
     setIsSyncing(true);
     setSyncMessage(null);
     
@@ -161,9 +167,24 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          portfolioId: portfolio.id,
           epoPortfolioId: portfolio.epoPortfolioId,
           epoUserId: portfolio.epoUserId,
+          // Send data directly from client
+          portfolioData: {
+            portfolio_name: basicInfo.portfolio_name || undefined,
+            portfolio_surname: basicInfo.portfolio_surname || undefined,
+            portfolio_family: basicInfo.portfolio_family || undefined,
+            email: basicInfo.email || undefined,
+            phone: basicInfo.phone || undefined,
+            nationality: basicInfo.nationality || undefined,
+            internship_total: workExperience.internship_total || undefined,
+            internship_teaching: workExperience.internship_teaching || undefined,
+            actual_position: currentPosition.actual_position || undefined,
+            actual_position_other: currentPosition.actual_position_other || undefined,
+            actual_type: currentPosition.actual_type || undefined,
+            actual_name: currentPosition.actual_name || undefined,
+            citat: favoriteQuote.citat || undefined,
+          }
         }),
       });
       
