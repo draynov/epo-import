@@ -400,7 +400,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   <button
                     onClick={handleSyncToEpo}
                     disabled={isSyncing || !portfolio.epoPortfolioId || !portfolio.epoUserId}
-                    className="inline-flex items-center justify-center h-9 px-3 text-sm rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center h-9 px-3 text-sm rounded-md font-medium transition-colors bg-purple-500 hover:bg-purple-600 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isSyncing ? (
                       <>
@@ -456,13 +456,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
               {section.sectionId === "section-1" && syncMessage && (
                 <div className={`p-4 rounded-md ${
                   syncMessage.type === 'success' 
-                    ? 'bg-green-50 border border-green-200' 
+                    ? 'bg-purple-50 border border-purple-200' 
                     : 'bg-red-50 border border-red-200'
                 }`}>
                   <div className="flex items-center">
                     {syncMessage.type === 'success' ? (
                       <svg
-                        className="h-5 w-5 text-green-600 mr-2"
+                        className="h-5 w-5 text-purple-600 mr-2"
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
@@ -492,7 +492,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       </svg>
                     )}
                     <p className={`text-sm font-medium ${
-                      syncMessage.type === 'success' ? 'text-green-800' : 'text-red-800'
+                      syncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
                     }`}>
                       {syncMessage.text}
                     </p>
@@ -610,7 +610,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             size="sm"
                             onClick={handleSyncPositions}
                             disabled={isSyncingPositions || !portfolio.epoPortfolioId || !portfolio.epoUserId}
-                            className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {isSyncingPositions ? (
                               <>
@@ -670,13 +670,13 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   {subsection.subsectionId === "position-history" && positionsSyncMessage && (
                     <div className={`mt-3 p-3 rounded-md ${
                       positionsSyncMessage.type === 'success' 
-                        ? 'bg-blue-50 border border-blue-200' 
+                        ? 'bg-purple-50 border border-purple-200' 
                         : 'bg-red-50 border border-red-200'
                     }`}>
                       <div className="flex items-center">
                         {positionsSyncMessage.type === 'success' ? (
                           <svg
-                            className="h-4 w-4 text-blue-600 mr-2"
+                            className="h-4 w-4 text-purple-600 mr-2"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -706,7 +706,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           </svg>
                         )}
                         <p className={`text-sm font-medium ${
-                          positionsSyncMessage.type === 'success' ? 'text-blue-800' : 'text-red-800'
+                          positionsSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
                         }`}>
                           {positionsSyncMessage.text}
                         </p>
@@ -722,16 +722,25 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           const value = data?.[field.key];
                           if (!value && field.type !== "boolean") return null;
                           
+                          // Find display value
+                          let displayValue: string;
+                          if (field.type === "boolean") {
+                            displayValue = value ? "Да" : "Не";
+                          } else if (field.type === "select" && field.options && Array.isArray(field.options)) {
+                            // Find the option with matching value
+                            const option = field.options.find(opt => String(opt.value) === String(value));
+                            displayValue = option ? option.label : String(value);
+                          } else if (field.key.includes("mesec") && typeof value === "number") {
+                            displayValue = formatMonth(value);
+                          } else {
+                            displayValue = String(value);
+                          }
+                          
                           return (
                             <div key={field.key} className="bg-white rounded px-3 py-2">
                               <div className="text-xs text-gray-500 mb-0.5">{field.label}</div>
                               <div className="text-sm font-medium text-gray-900">
-                                {field.type === "boolean" 
-                                  ? (value ? "Да" : "Не")
-                                  : field.key.includes("mesec") && typeof value === "number"
-                                  ? formatMonth(value)
-                                  : String(value)
-                                }
+                                {displayValue}
                               </div>
                             </div>
                           );
