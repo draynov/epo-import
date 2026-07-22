@@ -7,6 +7,7 @@
 'use client';
 
 import { FieldMapping, RecordMapping } from '@/lib/mapping/section-1-mapper';
+import { PortfolioSectionDefinition, PortfolioFieldDefinition } from '@/types';
 import { useState } from 'react';
 
 type GenericMapping = {
@@ -14,15 +15,9 @@ type GenericMapping = {
   records: RecordMapping[];
 };
 
-type SectionConfig = {
-  sectionId: string;
-  title: string;
-  subsections: any[];
-};
-
 interface MappingPreviewProps {
   mapping: GenericMapping;
-  sectionConfig: SectionConfig;
+  sectionConfig: PortfolioSectionDefinition;
   sectionNumber: number;
   sectionTitle: string;
   onConfirm: (selectedMappings: GenericMapping) => void;
@@ -160,7 +155,7 @@ export function MappingPreview({
               </div>
               
               <div className="divide-y divide-gray-100">
-                {subsection.fields.map((configField) => {
+                {subsection.fields.map((configField: PortfolioFieldDefinition) => {
                   const mapping = fieldMappingMap.get(configField.key);
                   
                   if (mapping) {
