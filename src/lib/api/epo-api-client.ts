@@ -194,8 +194,3 @@ export class EpoApiClient {
 
 // Export singleton instance
 export const epoApiClient = new EpoApiClient();
-
-/**
- * Default API client instance
- */
-export const epoApiClient = new EpoApiClient();
