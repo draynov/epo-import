@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Build payload with all specialty fields
     const payload = new URLSearchParams({
+      token: EPO_API_CONFIG.TOKEN,
       portfolio: epoPortfolioId.toString(),
       users: epoUserId.toString(),
       cmd: 'specialty',
@@ -74,12 +75,28 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Bearer ${EPO_API_CONFIG.TOKEN}`,
       },
       body: payload.toString(),
     });
 
-    const data = await response.json();
+    console.log('🟣 Response status:', response.status);
+    console.log('🟣 Response headers:', Object.fromEntries(response.headers.entries()));
+
+    // Get response text first
+    const responseText = await response.text();
+    console.log('🟣 Response text:', responseText);
+
+    // Try to parse as JSON
+    let data: any;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('🟣 Failed to parse JSON response:', responseText);
+      return NextResponse.json(
+        { error: `Невалиден отговор от EPO API: ${responseText.substring(0, 200)}` },
+        { status: 500 }
+      );
+    }
 
     if (!response.ok) {
       console.error('EPO API error:', data);
