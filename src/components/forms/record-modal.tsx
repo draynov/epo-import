@@ -78,11 +78,6 @@ export function RecordModal({
         isRequired = true;
       }
       
-      // godina_to is required only if now_to is not checked
-      if (field.key === "godina_to" && !hasNowTo) {
-        isRequired = true;
-      }
-      
       // Check for empty values
       if (isRequired && !formData[field.key]) {
         newErrors[field.key] = `${field.label} е задължително поле`;
