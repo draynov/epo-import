@@ -3,4 +3,5 @@
  */
 
 export * from "./epo-api-client";
-export * from "./import-service";
+export * from "./epo-api-types";
+export * from "./epo-api-transform";
