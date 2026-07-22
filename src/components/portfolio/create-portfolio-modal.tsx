@@ -4,7 +4,7 @@
 
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import { Modal, Input, Button } from "@/components/ui";
 import { CreatePortfolioInput } from "@/types/portfolio-data";
 
@@ -12,18 +12,33 @@ export interface CreatePortfolioModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: CreatePortfolioInput) => void;
+  initialData?: CreatePortfolioInput;
+  mode?: 'create' | 'edit';
 }
 
 export function CreatePortfolioModal({
   isOpen,
   onClose,
   onSubmit,
+  initialData,
+  mode = 'create',
 }: CreatePortfolioModalProps) {
   const [formData, setFormData] = useState<CreatePortfolioInput>({
     name: "",
     epoUserId: "",
     epoPortfolioId: "",
   });
+
+  const [errors, setErrors] = useState<Partial<Record<keyof CreatePortfolioInput, string>>>({});
+
+  // Load initial data when modal opens in edit mode
+  useEffect(() => {
+    if (isOpen && initialData) {
+      setFormData(initialData);
+    } else if (isOpen && !initialData) {
+      setFormData({ name: "", epoUserId: "", epoPortfolioId: "" });
+    }
+  }, [isOpen, initialData]);
 
   const [errors, setErrors] = useState<Partial<Record<keyof CreatePortfolioInput, string>>>({});
 
@@ -69,13 +84,15 @@ export function CreatePortfolioModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Създай портфолио"
+      title={mode === 'edit' ? "Редактирай портфолио" : "Създай портфолио"}
       footer={
         <>
           <Button variant="secondary" onClick={handleClose}>
             Отказ
           </Button>
-          <Button onClick={handleSubmit}>Създай</Button>
+          <Button onClick={handleSubmit}>
+            {mode === 'edit' ? 'Запази' : 'Създай'}
+          </Button>
         </>
       }
     >
