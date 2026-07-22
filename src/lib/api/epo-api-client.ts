@@ -129,8 +129,18 @@ export class EpoApiClient {
     epoPortfolioId: string,
     epoUserId: string
   ): Promise<EpoApiResponse> {
+    console.log('📌 SYNC: portfolioId:', portfolioId);
+    console.log('📌 SYNC: epoPortfolioId:', epoPortfolioId);
+    console.log('📌 SYNC: epoUserId:', epoUserId);
+    
     // Load all subsection data from Supabase
     const subsectionData = await this.loadAllSubsectionData(portfolioId);
+    
+    console.log('📦 LOADED subsections:', Object.keys(subsectionData));
+    console.log('📦 basic-info data:', subsectionData['basic-info']);
+    console.log('📦 work-experience data:', subsectionData['work-experience']);
+    console.log('📦 current-position data:', subsectionData['current-position']);
+    console.log('📦 favorite-quote data:', subsectionData['favorite-quote']);
     
     // Transform to EPO API format
     const transformedData = transformPortfolioToEpoApi(
@@ -138,6 +148,8 @@ export class EpoApiClient {
       epoUserId,
       subsectionData
     );
+    
+    console.log('🔄 TRANSFORMED:', transformedData);
     
     // Build request payload
     const payload: Partial<EpoPortfolioRequest> = {
@@ -148,10 +160,14 @@ export class EpoApiClient {
       ...transformedData,
     };
     
+    console.log('📤 FULL PAYLOAD (before clean):', payload);
+    
     // Remove undefined/null values
     const cleanPayload = Object.fromEntries(
       Object.entries(payload).filter(([_, v]) => v !== undefined && v !== null)
     );
+    
+    console.log('📤 CLEAN PAYLOAD (sending):', cleanPayload);
     
     return this.post(cleanPayload as EpoApiBaseRequest & Record<string, unknown>);
   }
