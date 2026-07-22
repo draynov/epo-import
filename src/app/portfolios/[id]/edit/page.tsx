@@ -126,6 +126,12 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const handleSyncToEpo = async () => {
     if (!portfolio) return;
     
+    console.log('🟢 CLIENT: Starting sync...');
+    console.log('🟢 CLIENT: Portfolio:', portfolio);
+    console.log('🟢 CLIENT: Portfolio ID:', portfolio.id);
+    console.log('🟢 CLIENT: EPO Portfolio ID:', portfolio.epoPortfolioId);
+    console.log('🟢 CLIENT: EPO User ID:', portfolio.epoUserId);
+    
     // Validate IDs
     if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
       setSyncMessage({
@@ -135,10 +141,19 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       return;
     }
     
+    // Check what data we have locally
+    console.log('🟢 CLIENT: allSubsectionData keys:', Object.keys(allSubsectionData));
+    console.log('🟢 CLIENT: basic-info:', allSubsectionData['basic-info']);
+    console.log('🟢 CLIENT: work-experience:', allSubsectionData['work-experience']);
+    console.log('🟢 CLIENT: current-position:', allSubsectionData['current-position']);
+    console.log('🟢 CLIENT: favorite-quote:', allSubsectionData['favorite-quote']);
+    
     setIsSyncing(true);
     setSyncMessage(null);
     
     try {
+      console.log('🟢 CLIENT: Calling /api/epo-sync...');
+      
       // Call Next.js API route (avoids CORS issues)
       const response = await fetch('/api/epo-sync', {
         method: 'POST',
@@ -152,7 +167,11 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
         }),
       });
       
+      console.log('🟢 CLIENT: Response status:', response.status);
+      
       const data = await response.json();
+      
+      console.log('🟢 CLIENT: Response data:', data);
       
       if (data.success) {
         setSyncMessage({
