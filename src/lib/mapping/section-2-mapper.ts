@@ -4,7 +4,7 @@
  */
 
 import { ParsedHTMLData } from '@/lib/parsers/html-parser';
-import { SECTION_2_EDUCATION_QUALIFICATIONS } from '@/config/sections/section-2-education';
+import { SECTION_2_EDUCATION } from '@/config/sections/section-2-education';
 
 export interface FieldMapping {
   targetField: string; // Key in Section 2

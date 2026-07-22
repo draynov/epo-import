@@ -11,7 +11,7 @@ import { ImportProgressBar } from '@/components/import/import-progress-bar';
 import { MappingPreview } from '@/components/import/mapping-preview';
 import { ImportSessionStorage } from '@/lib/storage/import-session-storage';
 import { mapToSection2, Section2Mapping } from '@/lib/mapping/section-2-mapper';
-import { SECTION_2_EDUCATION_QUALIFICATIONS } from '@/config/sections/section-2-education';
+import { SECTION_2_EDUCATION } from '@/config/sections/section-2-education';
 
 export default function Section2ImportPage({
   params,
@@ -111,7 +111,7 @@ export default function Section2ImportPage({
         <div className="bg-white rounded-lg shadow-md p-6">
           <MappingPreview
             mapping={mapping}
-            sectionConfig={SECTION_2_EDUCATION_QUALIFICATIONS}
+            sectionConfig={SECTION_2_EDUCATION}
             sectionNumber={2}
             sectionTitle="Образование и квалификация"
             onConfirm={handleConfirm}
