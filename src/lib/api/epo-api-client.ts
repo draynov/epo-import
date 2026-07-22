@@ -1,22 +1,16 @@
 /**
  * EPO API Client
- * Client за комуникация с https://epo.bg/api2/
+ * Client for communication with https://epo.bg/api2/
  */
 
 import {
-  EpoApiBaseRequest,
+  EPO_API_CONFIG,
   EpoApiResponse,
-  isEpoApiSuccess,
-} from "@/types";
-import { validateApiRequest, validateApiResponse } from "../validation";
-
-/**
- * API Configuration
- */
-const API_CONFIG = {
-  baseUrl: process.env.NEXT_PUBLIC_EPO_API_URL || "https://epo.bg/api2/",
-  timeout: 30000, // 30 seconds
-};
+  EpoApiBaseRequest,
+  EpoPortfolioRequest,
+} from './epo-api-types';
+import { transformPortfolioToEpoApi } from './epo-api-transform';
+import { supabaseSubsectionDataStorage } from '../storage/supabase-subsection-data-storage';
 
 /**
  * API Client Error
@@ -25,11 +19,25 @@ export class EpoApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,
-    public response?: EpoApiResponse
+    public errorResponse?: { Error: string }
   ) {
     super(message);
-    this.name = "EpoApiError";
+    this.name = 'EpoApiError';
   }
+}
+
+/**
+ * Check if API response is success
+ */
+export function isEpoApiSuccess(response: EpoApiResponse): response is { Message: string } {
+  return 'Message' in response;
+}
+
+/**
+ * Check if API response is error
+ */
+export function isEpoApiError(response: EpoApiResponse): response is { Error: string } {
+  return 'Error' in response;
 }
 
 /**
@@ -37,37 +45,42 @@ export class EpoApiError extends Error {
  */
 export class EpoApiClient {
   private baseUrl: string;
+  private token: string;
   private timeout: number;
 
-  constructor(baseUrl?: string, timeout?: number) {
-    this.baseUrl = baseUrl || API_CONFIG.baseUrl;
-    this.timeout = timeout || API_CONFIG.timeout;
+  constructor(
+    baseUrl: string = EPO_API_CONFIG.BASE_URL,
+    token: string = EPO_API_CONFIG.TOKEN,
+    timeout: number = 30000
+  ) {
+    this.baseUrl = baseUrl;
+    this.token = token;
+    this.timeout = timeout;
   }
 
   /**
-   * Изпраща POST заявка към EPO API
+   * Send POST request to EPO API
    */
-  async post<T = unknown>(
-    payload: EpoApiBaseRequest & Record<string, unknown>
-  ): Promise<EpoApiResponse> {
-    // Валидация на request
-    const validationResult = validateApiRequest(payload);
-    if (!validationResult.success) {
-      throw new EpoApiError(
-        `Invalid request payload: ${validationResult.error.message}`
-      );
-    }
-
+  async post(payload: EpoApiBaseRequest & Record<string, unknown>): Promise<EpoApiResponse> {
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
+      // Convert payload to FormData (API expects form-urlencoded)
+      const formData = new URLSearchParams();
+      
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          formData.append(key, String(value));
+        }
+      });
+
       const response = await fetch(this.baseUrl, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify(payload),
+        body: formData.toString(),
         signal: controller.signal,
       });
 
@@ -80,109 +93,109 @@ export class EpoApiClient {
         );
       }
 
-      const data = await response.json();
+      const data = await response.json() as EpoApiResponse;
 
-      // Валидация на response
-      const responseValidation = validateApiResponse(data);
-      if (!responseValidation.success) {
+      // Check if response contains Error
+      if (isEpoApiError(data)) {
         throw new EpoApiError(
-          `Invalid response format: ${responseValidation.error.message}`
+          `API Error: ${data.Error}`,
+          undefined,
+          data
         );
       }
 
-      return data as EpoApiResponse;
+      return data;
     } catch (error) {
       if (error instanceof EpoApiError) {
         throw error;
       }
 
       if (error instanceof Error) {
-        if (error.name === "AbortError") {
+        if (error.name === 'AbortError') {
           throw new EpoApiError(`Request timeout after ${this.timeout}ms`);
         }
         throw new EpoApiError(`Network error: ${error.message}`);
       }
 
-      throw new EpoApiError("Unknown error occurred");
+      throw new EpoApiError('Unknown error occurred');
     }
   }
 
   /**
-   * Проверява дали response е успешен
+   * Sync portfolio data from Supabase to EPO API
    */
-  isSuccess(response: EpoApiResponse): boolean {
-    return isEpoApiSuccess(response);
-  }
-
-  /**
-   * Изпраща данни за portfolio (директни полета)
-   */
-  async submitPortfolioData(
-    portfolioId: number,
-    userId: number,
-    data: Record<string, unknown>
+  async syncPortfolioData(
+    portfolioId: string,
+    epoPortfolioId: string,
+    epoUserId: string
   ): Promise<EpoApiResponse> {
-    return this.post({
-      portfolio: portfolioId,
-      users: userId,
-      cmd: "portfolio",
-      ...data,
-    });
+    // Load all subsection data from Supabase
+    const subsectionData = await this.loadAllSubsectionData(portfolioId);
+    
+    // Transform to EPO API format
+    const transformedData = transformPortfolioToEpoApi(
+      portfolioId,
+      epoUserId,
+      subsectionData
+    );
+    
+    // Build request payload
+    const payload: Partial<EpoPortfolioRequest> = {
+      token: this.token,
+      portfolio: epoPortfolioId,
+      users: epoUserId,
+      cmd: 'portfolio',
+      ...transformedData,
+    };
+    
+    // Remove undefined/null values
+    const cleanPayload = Object.fromEntries(
+      Object.entries(payload).filter(([_, v]) => v !== undefined && v !== null)
+    );
+    
+    return this.post(cleanPayload as EpoApiBaseRequest);
   }
 
   /**
-   * Изпраща данни за подсекция (generic)
+   * Load all subsection data for a portfolio from Supabase
    */
-  async submitSubsectionData(
-    portfolioId: number,
-    userId: number,
-    cmd: string,
-    data: Record<string, unknown>
-  ): Promise<EpoApiResponse> {
-    return this.post({
-      portfolio: portfolioId,
-      users: userId,
-      cmd,
-      ...data,
-    });
-  }
-
-  /**
-   * Batch изпращане на множество записи
-   */
-  async submitBatch(
-    portfolioId: number,
-    userId: number,
-    cmd: string,
-    records: Array<Record<string, unknown>>
-  ): Promise<EpoApiResponse[]> {
-    const results: EpoApiResponse[] = [];
-
-    for (const record of records) {
+  private async loadAllSubsectionData(
+    portfolioId: string
+  ): Promise<Record<string, Record<string, unknown>>> {
+    const data: Record<string, Record<string, unknown>> = {};
+    
+    // Load all subsections from Section 1
+    const subsections = [
+      'section_1_subsection_1_1', // Personal data
+      'section_1_subsection_1_2', // Work history
+      'section_1_subsection_1_3', // Professional development
+      'section_1_subsection_1_4', // Qualifications
+      'section_1_subsection_1_5', // Achievements
+      'section_1_subsection_1_6', // Reflection
+    ];
+    
+    for (const subsectionId of subsections) {
       try {
-        const response = await this.submitSubsectionData(
+        const subsectionData = await supabaseSubsectionDataStorage.getData(
           portfolioId,
-          userId,
-          cmd,
-          record
+          subsectionId
         );
-        results.push(response);
-      } catch (error) {
-        if (error instanceof EpoApiError) {
-          results.push({
-            Message: error.message,
-          });
-        } else {
-          results.push({
-            Message: "Unknown error",
-          });
+        
+        if (subsectionData) {
+          data[subsectionId] = subsectionData as Record<string, unknown>;
         }
+      } catch (error) {
+        console.warn(`Failed to load subsection ${subsectionId}:`, error);
+        // Continue with other subsections
       }
     }
-
-    return results;
+    
+    return data;
   }
 }
+
+// Export singleton instance
+export const epoApiClient = new EpoApiClient();
 
 /**
  * Default API client instance
