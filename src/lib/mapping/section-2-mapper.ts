@@ -58,10 +58,17 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       const isTitleEducationType = educationTypeKeywords.some(keyword => titleLower.includes(keyword));
       
       if (isTitleEducationType && titleField && descriptionField) {
-        // Title is education type, Description is institution
+        // Title is education type, Description contains institution + specialty on separate lines
         educationType = educationType || titleField;
-        institution = institution || descriptionField;
-        // Specialty remains empty or from specific column
+        
+        // Split description by newlines to extract institution and specialty
+        const descriptionLines = descriptionField
+          .split(/\n+/)
+          .map(line => line.trim())
+          .filter(line => line.length > 0);
+        
+        institution = institution || descriptionLines[0] || '';
+        specialty = specialty || descriptionLines[1] || '';
       } else if (titleField && descriptionField) {
         // Standard case: Title is institution, Description is specialty
         institution = institution || titleField;
