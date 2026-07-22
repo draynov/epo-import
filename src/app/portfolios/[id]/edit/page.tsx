@@ -320,104 +320,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-3xl font-bold text-gray-900">{portfolio.name}</h1>
           <div className="flex gap-3">
-            <button
-              onClick={handleSyncToEpo}
-              disabled={isSyncing || !portfolio.epoPortfolioId || !portfolio.epoUserId}
-              className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSyncing ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Синхронизиране...
-                </>
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                    />
-                  </svg>
-                  Синхронизирай с EPO
-                </>
-              )}
-            </button>
-            <button
-              onClick={handleSyncPositions}
-              disabled={isSyncingPositions || !portfolio.epoPortfolioId || !portfolio.epoUserId}
-              className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-blue-600 hover:bg-blue-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSyncingPositions ? (
-                <>
-                  <svg
-                    className="animate-spin h-4 w-4 mr-2"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Синхронизиране...
-                </>
-              ) : (
-                <>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4 mr-2"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                  Синхронизирай позиции
-                </>
-              )}
-            </button>
             <a
               href={`/portfolios/${id}/import`}
               className="inline-flex items-center justify-center h-10 px-4 text-base rounded-md font-medium transition-colors bg-purple-600 hover:bg-purple-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-purple-600"
@@ -477,107 +379,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
             </a>
           </div>
         </div>
-        
-        {/* EPO Sync Status Messages */}
-        {syncMessage && (
-          <div className={`mb-4 p-4 rounded-md ${
-            syncMessage.type === 'success' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-red-50 border border-red-200'
-          }`}>
-            <div className="flex items-center">
-              {syncMessage.type === 'success' ? (
-                <svg
-                  className="h-5 w-5 text-green-600 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="h-5 w-5 text-red-600 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              )}
-              <p className={`text-sm font-medium ${
-                syncMessage.type === 'success' ? 'text-green-800' : 'text-red-800'
-              }`}>
-                {syncMessage.text}
-              </p>
-            </div>
-          </div>
-        )}
-        
-        {/* Positions Sync Status Message */}
-        {positionsSyncMessage && (
-          <div className={`mb-4 p-4 rounded-md ${
-            positionsSyncMessage.type === 'success' 
-              ? 'bg-blue-50 border border-blue-200' 
-              : 'bg-red-50 border border-red-200'
-          }`}>
-            <div className="flex items-center">
-              {positionsSyncMessage.type === 'success' ? (
-                <svg
-                  className="h-5 w-5 text-blue-600 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              ) : (
-                <svg
-                  className="h-5 w-5 text-red-600 mr-2"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              )}
-              <p className={`text-sm font-medium ${
-                positionsSyncMessage.type === 'success' ? 'text-blue-800' : 'text-red-800'
-              }`}>
-                {positionsSyncMessage.text}
-              </p>
-            </div>
-          </div>
-        )}
-        
-        <div className="text-sm text-gray-600">
-          <p>User ID: {portfolio.epoUserId || <span className="text-red-600">Не е въведен</span>}</p>
-          <p>Portfolio ID: {portfolio.epoPortfolioId || <span className="text-red-600">Не е въведен</span>}</p>
-        </div>
       </div>
 
       {/* All Sections */}
@@ -586,16 +387,119 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
           <div key={section.sectionId} className="bg-white shadow-md rounded-lg overflow-hidden">
             {/* Section Header */}
             <div className="bg-blue-50 px-6 py-4 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">
-                {section.title}
-              </h2>
-              {section.description && (
-                <p className="text-sm text-gray-600 mt-1">{section.description}</p>
-              )}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-900">
+                    {section.title}
+                  </h2>
+                  {section.description && (
+                    <p className="text-sm text-gray-600 mt-1">{section.description}</p>
+                  )}
+                </div>
+                {section.sectionId === "section-1" && (
+                  <button
+                    onClick={handleSyncToEpo}
+                    disabled={isSyncing || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                    className="inline-flex items-center justify-center h-9 px-3 text-sm rounded-md font-medium transition-colors bg-green-600 hover:bg-green-700 text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-green-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isSyncing ? (
+                      <>
+                        <svg
+                          className="animate-spin h-4 w-4 mr-1.5"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Синхронизиране...
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4 mr-1.5"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                          />
+                        </svg>
+                        Синхронизирай с EPO
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Subsections */}
             <div className="p-6 space-y-4">
+              {/* Portfolio Sync Status Message for Section 1 */}
+              {section.sectionId === "section-1" && syncMessage && (
+                <div className={`p-4 rounded-md ${
+                  syncMessage.type === 'success' 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-red-50 border border-red-200'
+                }`}>
+                  <div className="flex items-center">
+                    {syncMessage.type === 'success' ? (
+                      <svg
+                        className="h-5 w-5 text-green-600 mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        className="h-5 w-5 text-red-600 mr-2"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                    <p className={`text-sm font-medium ${
+                      syncMessage.type === 'success' ? 'text-green-800' : 'text-red-800'
+                    }`}>
+                      {syncMessage.text}
+                    </p>
+                  </div>
+                </div>
+              )}
+              
               {section.subsections.map((subsection) => {
                 try {
                   const data = allSubsectionData[subsection.subsectionId] || null;
@@ -679,27 +583,81 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       </Button>
                     )}
                     {subsection.type === "record_list" && hasModal && (
-                      <Button 
-                        size="sm"
-                        onClick={() => recordListTriggers[subsection.subsectionId]?.()}
-                        className="bg-green-600 hover:bg-green-700 text-white"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-4 w-4 mr-1"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm"
+                          onClick={() => recordListTriggers[subsection.subsectionId]?.()}
+                          className="bg-green-600 hover:bg-green-700 text-white"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 4v16m8-8H4"
-                          />
-                        </svg>
-                        Добави
-                      </Button>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-4 w-4 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 4v16m8-8H4"
+                            />
+                          </svg>
+                          Добави
+                        </Button>
+                        {subsection.subsectionId === "position-history" && (
+                          <Button
+                            size="sm"
+                            onClick={handleSyncPositions}
+                            disabled={isSyncingPositions || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSyncingPositions ? (
+                              <>
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-1"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Синхронизиране...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                                Синхронизирай
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
                     )}
                     {!hasModal && (
                       <Button size="sm" variant="secondary" disabled>
@@ -707,6 +665,54 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       </Button>
                     )}
                   </div>
+                  
+                  {/* Positions Sync Status Message */}
+                  {subsection.subsectionId === "position-history" && positionsSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      positionsSyncMessage.type === 'success' 
+                        ? 'bg-blue-50 border border-blue-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {positionsSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-blue-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          positionsSyncMessage.type === 'success' ? 'text-blue-800' : 'text-red-800'
+                        }`}>
+                          {positionsSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Data Visualization */}
                   {hasData && subsection.type === "direct_fields" && (
