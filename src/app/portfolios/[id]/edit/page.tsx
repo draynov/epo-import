@@ -542,6 +542,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       </div>
 
       {/* Edit Subsection Modal */}
+      {/* Edit Subsection Modal */}
       {editingSubsection && (
         <EditSubsectionModal
           isOpen={isEditModalOpen}
@@ -551,19 +552,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
           onSave={handleSaveSubsection}
         />
       )}
-      
-      {/* Edit Portfolio Settings Modal */}
-      <CreatePortfolioModal
-        isOpen={isEditPortfolioModalOpen}
-        onClose={() => setIsEditPortfolioModalOpen(false)}
-        onSubmit={handleUpdatePortfolio}
-        initialData={{
-          name: portfolio.name,
-          epoUserId: portfolio.epoUserId || '',
-          epoPortfolioId: portfolio.epoPortfolioId || '',
-        }}
-        mode="edit"
-      />
     </div>
   );
 }
