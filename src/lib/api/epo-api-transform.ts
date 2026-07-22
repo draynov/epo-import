@@ -15,35 +15,32 @@ export function transformPortfolioToEpoApi(
   subsectionData: Record<string, Record<string, unknown>>
 ): Partial<EpoPortfolioRequest> {
   // Get Section 1 subsections
-  const personalData = subsectionData['section_1_subsection_1_1'] || {};
-  const workHistoryData = subsectionData['section_1_subsection_1_2'] || {};
-  const reflectionData = subsectionData['section_1_subsection_1_6'] || {};
-  
-  // Extract work history for current position (nowTo = true)
-  const workHistory = (workHistoryData as any).records as Array<any> || [];
-  const currentJob = workHistory.find((job: any) => job.nowTo === true);
+  const basicInfo = subsectionData['basic-info'] || {};
+  const workExperience = subsectionData['work-experience'] || {};
+  const currentPosition = subsectionData['current-position'] || {};
+  const favoriteQuote = subsectionData['favorite-quote'] || {};
   
   const payload: Partial<EpoPortfolioRequest> = {
-    // Лични данни (subsection 1.1)
-    portfolio_name: personalData.firstName as string || undefined,
-    portfolio_surname: personalData.middleName as string || undefined,
-    portfolio_family: personalData.lastName as string || undefined,
-    email: personalData.email as string || undefined,
-    phone: personalData.phone as string || undefined,
-    nationality: personalData.nationality as string || undefined,
+    // Лични данни (basic-info)
+    portfolio_name: basicInfo.portfolio_name as string || undefined,
+    portfolio_surname: basicInfo.portfolio_surname as string || undefined,
+    portfolio_family: basicInfo.portfolio_family as string || undefined,
+    email: basicInfo.email as string || undefined,
+    phone: basicInfo.phone as string || undefined,
+    nationality: basicInfo.nationality as string || undefined,
     
-    // Трудов стаж (subsection 1.1)
-    internship_total: personalData.totalExperience as string || undefined,
-    internship_teaching: personalData.specialtyExperience as string || undefined,
+    // Трудов стаж (work-experience)
+    internship_total: workExperience.internship_total as string || undefined,
+    internship_teaching: workExperience.internship_teaching as string || undefined,
     
-    // Актуална длъжност (subsection 1.2 - от work history)
-    actual_position: currentJob ? parsePosition(currentJob.position as string) : undefined,
-    actual_position_other: currentJob?.positionOther as string || undefined,
-    actual_type: currentJob ? parseInstitutionType(currentJob.institutionType as string) : undefined,
-    actual_name: currentJob?.institution as string || undefined,
+    // Актуална длъжност (current-position)
+    actual_position: currentPosition.actual_position as number || undefined,
+    actual_position_other: currentPosition.actual_position_other as string || undefined,
+    actual_type: currentPosition.actual_type as number || undefined,
+    actual_name: currentPosition.actual_name as string || undefined,
     
-    // Любим цитат (subsection 1.6)
-    citat: reflectionData.motto as string || undefined,
+    // Любим цитат (favorite-quote)
+    citat: favoriteQuote.citat as string || undefined,
   };
   
   // NOTE: НЕ изпращаме:

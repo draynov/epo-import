@@ -173,9 +173,10 @@ export class EpoApiClient {
     
     // Load subsections needed for portfolio module
     const subsections = [
-      'section_1_subsection_1_1', // Personal data - име, email, phone, гражданство, стаж
-      'section_1_subsection_1_2', // Work history - актуална длъжност и институция
-      'section_1_subsection_1_6', // Reflection - любим цитат (motto)
+      'basic-info',         // Personal data - име, презиме, фамилия, email, phone, nationality
+      'work-experience',    // Work experience - общ и учителски стаж
+      'current-position',   // Current position - актуална длъжност и институция
+      'favorite-quote',     // Favorite quote - любим цитат
     ];
     
     for (const subsectionId of subsections) {
