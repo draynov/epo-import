@@ -13,6 +13,7 @@ import { ParsedHTMLData } from '@/lib/parsers/html-parser';
 import { Section1Mapping } from '@/lib/mapping/section-1-mapper';
 import { ParsedDataView } from './parsed-data-view';
 import { MappingPreview } from './mapping-preview';
+import { SECTION_1_GENERAL_INFO } from '@/config/sections/section-1-general';
 
 interface ImportWizardProps {
   parsedData: ParsedHTMLData | null;
@@ -231,6 +232,9 @@ export function ImportWizard({
             </h3>
             <MappingPreview
               mapping={section1Mapping}
+              sectionConfig={SECTION_1_GENERAL_INFO}
+              sectionNumber={1}
+              sectionTitle="Обща информация"
               onConfirm={handleMappingConfirm}
               onCancel={handlePreviousStep}
             />
