@@ -125,25 +125,42 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
 
   // Map specialties (Специалности и педагогическа правоспособност)
   // This is a direct_fields subsection with specialty, teacher, specialty2, teacher2, etc.
-  // For now, we can extract first 1-2 specialties from education records if available
+  // Extract specialties and institutions from education records
   const educationRecords = records.find(r => r.targetSubsection === 'education')?.records || [];
   
   if (educationRecords.length > 0) {
-    // Extract up to 5 specialties
-    educationRecords.slice(0, 5).forEach((record, index) => {
+    // Filter records that have specialty, then map to first available fields
+    const recordsWithSpecialty = educationRecords.filter(record => record.specialty);
+    
+    recordsWithSpecialty.slice(0, 5).forEach((record, index) => {
       const suffix = index === 0 ? '' : (index + 1).toString();
       
-      if (record.specialty) {
-        fields.push({
-          targetField: `specialty${suffix}`,
-          targetLabel: `Специалност ${index + 1}`,
-          sourceValue: record.specialty,
-          sourceLabel: 'Специалност (от образование)',
-          confidence: 'medium',
-          subsectionId: 'specialties',
-          subsectionTitle: 'Специалности и педагогическа правоспособност',
-        });
-      }
+      fields.push({
+        targetField: `specialty${suffix}`,
+        targetLabel: `Специалност ${index + 1}`,
+        sourceValue: record.specialty,
+        sourceLabel: 'Специалност (от образование)',
+        confidence: 'medium',
+        subsectionId: 'specialties',
+        subsectionTitle: 'Специалности и педагогическа правоспособност',
+      });
+    });
+    
+    // Also map institutions to first available fields
+    const recordsWithInstitution = educationRecords.filter(record => record.institution);
+    
+    recordsWithInstitution.slice(0, 5).forEach((record, index) => {
+      const suffix = index === 0 ? '' : (index + 1).toString();
+      
+      fields.push({
+        targetField: `institution${suffix}`,
+        targetLabel: `Обучителна институция ${index + 1}`,
+        sourceValue: record.institution,
+        sourceLabel: 'Институция (от образование)',
+        confidence: 'medium',
+        subsectionId: 'specialties',
+        subsectionTitle: 'Специалности и педагогическа правоспособност',
+      });
     });
   }
 
