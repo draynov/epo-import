@@ -14,11 +14,18 @@ export function transformPortfolioToEpoApi(
   userId: string,
   subsectionData: Record<string, Record<string, unknown>>
 ): Partial<EpoPortfolioRequest> {
+  console.log('🔍 Available subsection IDs:', Object.keys(subsectionData));
+  
   // Get Section 1 subsections
   const basicInfo = subsectionData['basic-info'] || {};
   const workExperience = subsectionData['work-experience'] || {};
   const currentPosition = subsectionData['current-position'] || {};
   const favoriteQuote = subsectionData['favorite-quote'] || {};
+  
+  console.log('📋 basicInfo:', basicInfo);
+  console.log('📋 workExperience:', workExperience);
+  console.log('📋 currentPosition:', currentPosition);
+  console.log('📋 favoriteQuote:', favoriteQuote);
   
   const payload: Partial<EpoPortfolioRequest> = {
     // Лични данни (basic-info)
