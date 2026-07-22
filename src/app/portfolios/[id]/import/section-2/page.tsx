@@ -1,6 +1,6 @@
 /**
- * Section 1 Import Mapping Page
- * Dedicated page for mapping Section 1 (General Information) fields
+ * Section 2 Import Mapping Page
+ * Dedicated page for mapping Section 2 (Education and Qualifications) fields
  */
 
 'use client';
@@ -10,17 +10,17 @@ import { useRouter } from 'next/navigation';
 import { ImportProgressBar } from '@/components/import/import-progress-bar';
 import { MappingPreview } from '@/components/import/mapping-preview';
 import { ImportSessionStorage } from '@/lib/storage/import-session-storage';
-import { mapToSection1, Section1Mapping } from '@/lib/mapping/section-1-mapper';
-import { SECTION_1_GENERAL_INFO } from '@/config/sections/section-1-general';
+import { mapToSection2, Section2Mapping } from '@/lib/mapping/section-2-mapper';
+import { SECTION_2_EDUCATION_QUALIFICATIONS } from '@/config/sections/section-2-education';
 
-export default function Section1ImportPage({
+export default function Section2ImportPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
   const router = useRouter();
-  const [mapping, setMapping] = useState<Section1Mapping | null>(null);
+  const [mapping, setMapping] = useState<Section2Mapping | null>(null);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,13 +42,13 @@ export default function Section1ImportPage({
     }
 
     // Check if existing mapping exists (user came back to edit)
-    const existingMapping = ImportSessionStorage.getSectionMapping(1) as Section1Mapping | null;
+    const existingMapping = ImportSessionStorage.getSectionMapping(2) as Section2Mapping | null;
     
     if (existingMapping) {
       setMapping(existingMapping);
     } else {
       // Create new mapping from parsed data
-      const newMapping = mapToSection1(parsedData);
+      const newMapping = mapToSection2(parsedData);
       setMapping(newMapping);
     }
 
@@ -59,16 +59,16 @@ export default function Section1ImportPage({
     setLoading(false);
   }, []);
 
-  const handleConfirm = (selectedMapping: Section1Mapping) => {
+  const handleConfirm = (selectedMapping: Section2Mapping) => {
     // Save mapping to session
-    ImportSessionStorage.saveSectionMapping(1, selectedMapping);
+    ImportSessionStorage.saveSectionMapping(2, selectedMapping);
 
-    // Redirect to Section 2
-    router.push(`/portfolios/${id}/import/section-2`);
+    // Redirect to review page (or Section 3 when ready)
+    router.push(`/portfolios/${id}/import/review`);
   };
 
   const handleCancel = () => {
-    router.push(`/portfolios/${id}/import-pdf`);
+    router.push(`/portfolios/${id}/import/section-1`);
   };
 
   if (loading) {
@@ -90,10 +90,10 @@ export default function Section1ImportPage({
             <h2 className="text-lg font-semibold text-red-900 mb-2">Грешка</h2>
             <p className="text-sm text-red-700">{error || 'Неуспешно зареждане на данните'}</p>
             <button
-              onClick={() => router.push(`/portfolios/${id}/import-pdf`)}
+              onClick={() => router.push(`/portfolios/${id}/import/section-1`)}
               className="mt-4 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
             >
-              Назад към качване на файл
+              Назад към Секция 1
             </button>
           </div>
         </div>
@@ -105,15 +105,15 @@ export default function Section1ImportPage({
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         {/* Progress Bar */}
-        <ImportProgressBar currentSection={1} completedSections={completedSections} />
+        <ImportProgressBar currentSection={2} completedSections={completedSections} />
 
         {/* Mapping Preview */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <MappingPreview
             mapping={mapping}
-            sectionConfig={SECTION_1_GENERAL_INFO}
-            sectionNumber={1}
-            sectionTitle="Обща информация"
+            sectionConfig={SECTION_2_EDUCATION_QUALIFICATIONS}
+            sectionNumber={2}
+            sectionTitle="Образование и квалификация"
             onConfirm={handleConfirm}
             onCancel={handleCancel}
           />

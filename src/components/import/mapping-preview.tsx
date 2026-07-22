@@ -1,22 +1,42 @@
 /**
  * Mapping Preview Component
  * Shows side-by-side comparison of expected fields (left) and extracted data (right)
- * Displays ALL fields from Section 1 config, even if no mapping exists
+ * Generic component that works with any section config
  */
 
 'use client';
 
-import { Section1Mapping, FieldMapping, RecordMapping } from '@/lib/mapping/section-1-mapper';
-import { SECTION_1_GENERAL_INFO } from '@/config/sections/section-1-general';
+import { FieldMapping, RecordMapping } from '@/lib/mapping/section-1-mapper';
 import { useState } from 'react';
 
+type GenericMapping = {
+  fields: FieldMapping[];
+  records: RecordMapping[];
+};
+
+type SectionConfig = {
+  sectionId: string;
+  title: string;
+  subsections: any[];
+};
+
 interface MappingPreviewProps {
-  mapping: Section1Mapping;
-  onConfirm: (selectedMappings: Section1Mapping) => void;
+  mapping: GenericMapping;
+  sectionConfig: SectionConfig;
+  sectionNumber: number;
+  sectionTitle: string;
+  onConfirm: (selectedMappings: GenericMapping) => void;
   onCancel: () => void;
 }
 
-export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewProps) {
+export function MappingPreview({ 
+  mapping, 
+  sectionConfig, 
+  sectionNumber, 
+  sectionTitle,
+  onConfirm, 
+  onCancel 
+}: MappingPreviewProps) {
   const [selectedFields, setSelectedFields] = useState<Set<string>>(
     new Set(mapping.fields.map(f => f.targetField))
   );
@@ -25,7 +45,7 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
   );
   
   // Editable mapping state
-  const [editableMapping, setEditableMapping] = useState<Section1Mapping>({
+  const [editableMapping, setEditableMapping] = useState<GenericMapping>({
     fields: [...mapping.fields],
     records: [...mapping.records]
   });
@@ -51,7 +71,7 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
   };
 
   const handleConfirm = () => {
-    const filteredMapping: Section1Mapping = {
+    const filteredMapping: GenericMapping = {
       fields: editableMapping.fields.filter(f => selectedFields.has(f.targetField)),
       records: editableMapping.records.filter(r => selectedRecords.has(r.targetSubsection)),
     };
@@ -105,8 +125,10 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
 
   // Count total fields (all fields from config, not just mapped ones)
   let totalFieldsInConfig = 0;
-  SECTION_1_GENERAL_INFO.subsections.forEach(sub => {
-    totalFieldsInConfig += sub.fields.length;
+  sectionConfig.subsections.forEach((sub: any) => {
+    if (sub.fields) {
+      totalFieldsInConfig += sub.fields.length;
+    }
   });
 
   const totalSelected = selectedFields.size + selectedRecords.size;
@@ -116,7 +138,7 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
       {/* Header */}
       <div className="border-b border-gray-200 pb-4">
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Преглед на мапинг за Секция 1: Обща информация
+          Преглед на мапинг за Секция {sectionNumber}: {sectionTitle}
         </h2>
         <p className="text-sm text-gray-600">
           Избрани: <span className="font-semibold">{totalSelected}</span> от {editableMapping.fields.length + editableMapping.records.length} намерени
@@ -126,7 +148,7 @@ export function MappingPreview({ mapping, onConfirm, onCancel }: MappingPreviewP
       </div>
 
       {/* All Subsections from Config */}
-      {SECTION_1_GENERAL_INFO.subsections.map((subsection) => {
+      {sectionConfig.subsections.map((subsection: any) => {
         if (subsection.type === 'direct_fields') {
           return (
             <div key={subsection.subsectionId} className="border border-gray-200 rounded-lg overflow-hidden">
