@@ -222,11 +222,11 @@ export default function ImportReviewPage({
             {/* Fields */}
             <div className="mb-6">
               <h3 className="text-sm font-medium text-gray-700 mb-3">Полета ({section1Mapping.fields.length})</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="space-y-3">
                 {section1Mapping.fields.slice(0, 10).map((field, idx) => (
-                  <div key={idx} className="bg-gray-50 rounded p-3">
-                    <div className="text-xs text-gray-500">{field.targetLabel}</div>
-                    <div className="text-sm text-gray-900 font-medium truncate">
+                  <div key={idx} className="bg-gray-50 rounded p-4 border border-gray-200">
+                    <div className="text-xs font-medium text-gray-500 mb-1">{field.targetLabel}</div>
+                    <div className="text-sm text-gray-900">
                       {field.sourceValue || '-'}
                     </div>
                   </div>
@@ -271,11 +271,11 @@ export default function ImportReviewPage({
             {section2Mapping.fields.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-medium text-gray-700 mb-3">Полета ({section2Mapping.fields.length})</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-3">
                   {section2Mapping.fields.slice(0, 10).map((field, idx) => (
-                    <div key={idx} className="bg-gray-50 rounded p-3">
-                      <div className="text-xs text-gray-500">{field.targetLabel}</div>
-                      <div className="text-sm text-gray-900 font-medium truncate">
+                    <div key={idx} className="bg-gray-50 rounded p-4 border border-gray-200">
+                      <div className="text-xs font-medium text-gray-500 mb-1">{field.targetLabel}</div>
+                      <div className="text-sm text-gray-900">
                         {field.sourceValue || '-'}
                       </div>
                     </div>
