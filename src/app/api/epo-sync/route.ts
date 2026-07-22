@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (portfolioData) {
       Object.entries(portfolioData).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
-          payload[key] = value;
+          payload[key] = value as string | number;
         }
       });
     }
