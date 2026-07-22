@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
         console.log('🟠 SERVER: Professional qualification response:', data);
 
-        if (data.Error) {
+        if ('Error' in data) {
           results.push({ success: false, error: data.Error });
         } else {
           results.push({ success: true, message: data.Message });
