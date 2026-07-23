@@ -117,11 +117,6 @@ export function RecordListView({
       if (nowTo === true || nowTo === 'true' || nowTo === '1' || nowTo === 1) {
         return 'До сега';
       }
-      // If godina_to is 0 or '0', likely means "now_to" was intended
-      const value = record[field.key];
-      if (value === 0 || value === '0') {
-        return 'До сега';
-      }
     }
 
     const value = record[field.key];
