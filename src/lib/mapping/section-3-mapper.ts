@@ -16,17 +16,16 @@ export interface Section3Mapping {
  */
 export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
   const fields: FieldMapping[] = [];
+  let foundPhilosophy = false;
+  let foundMethods = false;
 
-  // Look for text fields that might contain teaching methods or philosophy
+  // Look for text fields in rawTextFields (includes all fields from all sections)
   for (const textField of parsedData.rawTextFields) {
     const label = textField.label.toLowerCase();
     const value = textField.value;
 
-    // Map teaching philosophy FIRST (more specific check)
-    if (
-      label.includes('философи') ||
-      label.includes('philosophy')
-    ) {
+    // Map teaching philosophy (only once)
+    if (!foundPhilosophy && (label.includes('философи') || label.includes('philosophy'))) {
       fields.push({
         targetField: 'teachingphilosophy',
         targetLabel: 'Философия на преподаване',
@@ -36,14 +35,12 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
         subsectionId: 'teaching-philosophy',
         subsectionTitle: 'Философия на преподаване',
       });
-      continue; // Skip to next field
+      foundPhilosophy = true;
+      continue;
     }
 
-    // Map teaching methods (check after philosophy)
-    if (
-      label.includes('метод') ||
-      label.includes('method')
-    ) {
+    // Map teaching methods (only once)
+    if (!foundMethods && (label.includes('метод') || label.includes('method'))) {
       fields.push({
         targetField: 'teachingmethods',
         targetLabel: 'Методи на преподаване',
@@ -53,64 +50,12 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
         subsectionId: 'teaching-methods',
         subsectionTitle: 'Методи на преподаване',
       });
+      foundMethods = true;
     }
-  }
 
-  // Also check sections for "Информация" section
-  const infoSection = parsedData.sections.find(
-    s => s.title?.toLowerCase().includes('информация') ||
-         s.title?.toLowerCase().includes('information')
-  );
-
-  if (infoSection) {
-    for (const textField of infoSection.textFields) {
-      const label = textField.label.toLowerCase();
-      const value = textField.value;
-
-      // Map teaching philosophy from info section FIRST (more specific)
-      if (
-        label.includes('философи') ||
-        label.includes('philosophy')
-      ) {
-        // Check if not already added
-        const exists = fields.some(
-          f => f.targetField === 'teachingphilosophy' && f.sourceValue === value
-        );
-        if (!exists) {
-          fields.push({
-            targetField: 'teachingphilosophy',
-            targetLabel: 'Философия на преподаване',
-            sourceValue: value,
-            sourceLabel: textField.label,
-            confidence: 'high',
-            subsectionId: 'teaching-philosophy',
-            subsectionTitle: 'Философия на преподаване',
-          });
-        }
-        continue; // Skip to next field
-      }
-
-      // Map teaching methods from info section
-      if (
-        label.includes('метод') ||
-        label.includes('method')
-      ) {
-        // Check if not already added
-        const exists = fields.some(
-          f => f.targetField === 'teachingmethods' && f.sourceValue === value
-        );
-        if (!exists) {
-          fields.push({
-            targetField: 'teachingmethods',
-            targetLabel: 'Методи на преподаване',
-            sourceValue: value,
-            sourceLabel: textField.label,
-            confidence: 'high',
-            subsectionId: 'teaching-methods',
-            subsectionTitle: 'Методи на преподаване',
-          });
-        }
-      }
+    // Stop if we found both fields
+    if (foundPhilosophy && foundMethods) {
+      break;
     }
   }
 
