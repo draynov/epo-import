@@ -384,6 +384,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: true,
           min: 1950,
           max: 2100,
+          showInTable: false,
         },
         {
           key: "now_to",
@@ -478,6 +479,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_to",
