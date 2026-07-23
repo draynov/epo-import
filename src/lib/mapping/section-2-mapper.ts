@@ -194,37 +194,35 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       
       // Line 0: Theme/Name (with quotes removed)
       const theme = descriptionLines[0]?.replace(/^[""]|[""]$/g, '').trim() || '';
-      // Line 1: Institution (might be missing for internal qualifications)
-      const institution = descriptionLines[1] || '';
       // Last line: Check for credits
       const lastLine = descriptionLines[descriptionLines.length - 1] || '';
-      
-      // Determine which subsection this record belongs to
-      const hasCredits = lastLine.toLowerCase().includes('квалификационен кредит') || 
-                         lastLine.toLowerCase().includes('кредита');
-      const hasInstitution = institution.length > 0 && 
-                             !institution.toLowerCase().includes('квалификационен кредит') &&
-                             !institution.toLowerCase().includes('кредита');
       
       // Extract date and type from title
       const { month, year, type } = parseQualificationTitle(titleField);
       
+      // Determine which subsection this record belongs to based on line count
+      const hasCredits = lastLine.toLowerCase().includes('квалификационен кредит') || 
+                         lastLine.toLowerCase().includes('кредита');
+      
       if (hasCredits) {
-        // Credits subsection
+        // Credits subsection (3 lines: theme, institution, credits)
         // Extract quantity (1 or 2 credits)
         const quantityMatch = lastLine.match(/(\d+)\s*(?:квалификационен\s*кредит|кредита)/i);
         const quantity = quantityMatch ? quantityMatch[1] : '1';
+        
+        // Institution is on line 1 (before the credits line)
+        const institution = descriptionLines.length > 1 ? descriptionLines[descriptionLines.length - 2] : '';
         
         creditsRecords.push({
           mesec: month,
           godina: year,
           duration: '1', // Default to '1' (can be adjusted)
           quantity: quantity,
-          institution: institution || '',
+          institution: institution,
           tema: theme,
         });
-      } else if (!hasInstitution) {
-        // Internal qualifications (no institution on line 1)
+      } else if (descriptionLines.length === 1) {
+        // Internal qualifications (only 1 line: theme, no institution)
         internalRecords.push({
           mesec_from: month,
           godina_from: year,
@@ -236,7 +234,9 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
           institution: '', // No institution for internal
         });
       } else {
-        // Professional qualifications
+        // Professional qualifications (2 lines: theme, institution, no credits)
+        const institution = descriptionLines[1] || '';
+        
         professionalRecords.push({
           mesec_from: month,
           godina_from: year,
