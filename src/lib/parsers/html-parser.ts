@@ -142,39 +142,30 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
           let description = '';
           
           if (descriptionContainer) {
-            // Get all <p> elements (not divs to avoid parent-child duplication)
-            const paragraphs = descriptionContainer.querySelectorAll('p');
+            // Collect text from all direct children (p, div) excluding headings
+            const contentElements = Array.from(descriptionContainer.children).filter(
+              el => (el.tagName === 'P' || el.tagName === 'DIV') && 
+                    !el.matches('h1, h2, h3, h4, h5, h6')
+            );
             
-            if (paragraphs.length > 0) {
-              description = Array.from(paragraphs)
-                .map(p => p.textContent?.trim())
+            if (contentElements.length > 0) {
+              description = contentElements
+                .map(el => el.textContent?.trim())
                 .filter(text => text && text.length > 0)
                 .join('\n');
-            } else {
-              // Fallback: try direct div children
-              const divs = Array.from(descriptionContainer.children).filter(
-                el => el.tagName === 'DIV'
-              );
-              if (divs.length > 0) {
-                description = divs
-                  .map(d => d.textContent?.trim())
-                  .filter(text => text && text.length > 0)
-                  .join('\n');
-              } else {
-                // Final fallback to full text content
-                description = descriptionContainer.textContent?.trim() || '';
-              }
             }
-          }
-          
-          // Fallback: if no description container, try to get any p tags in the item
-          if (!description) {
-            const allParagraphs = item.querySelectorAll('p');
-            if (allParagraphs.length > 0) {
-              description = Array.from(allParagraphs)
-                .map(p => p.textContent?.trim())
-                .filter(text => text && text.length > 0)
-                .join('\n');
+            
+            // If still no content, try full text content excluding the heading
+            if (!description) {
+              const heading = descriptionContainer.querySelector('h1, h2, h3, h4, h5, h6');
+              const fullText = descriptionContainer.textContent?.trim() || '';
+              const headingText = heading?.textContent?.trim() || '';
+              
+              if (headingText && fullText.startsWith(headingText)) {
+                description = fullText.substring(headingText.length).trim();
+              } else {
+                description = fullText;
+              }
             }
           }
           
