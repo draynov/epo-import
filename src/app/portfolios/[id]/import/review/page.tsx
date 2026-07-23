@@ -227,7 +227,7 @@ export default function ImportReviewPage({
           <div className="bg-white rounded-lg shadow-md p-6">
             <div className="text-sm text-gray-500 mb-1">Мапнати полета</div>
             <div className="text-3xl font-bold text-blue-600">
-              {(section1Mapping?.fields.length || 0) + (section2Mapping?.fields.length || 0)}
+              {(section1Mapping?.fields.length || 0) + (section2Mapping?.fields.length || 0) + (section3Mapping?.fields.length || 0)}
             </div>
           </div>
           
@@ -334,6 +334,36 @@ export default function ImportReviewPage({
                   ))}
                 </div>
               </div>
+            )}
+          </div>
+        )}
+
+        {/* Section 3 Details */}
+        {section3Mapping && (
+          <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Секция 3: Практическо приложение
+            </h2>
+            
+            {/* Fields */}
+            {section3Mapping.fields.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-gray-700 mb-3">Полета ({section3Mapping.fields.length})</h3>
+                <div className="space-y-3">
+                  {section3Mapping.fields.map((field, idx) => (
+                    <div key={idx} className="bg-gray-50 rounded p-4 border border-gray-200">
+                      <div className="text-xs font-medium text-gray-500 mb-1">{field.targetLabel}</div>
+                      <div className="text-sm text-gray-900 whitespace-pre-wrap">
+                        {field.sourceValue || '-'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {section3Mapping.fields.length === 0 && (
+              <p className="text-sm text-gray-500">Няма мапнати полета от секция 3</p>
             )}
           </div>
         )}
