@@ -245,14 +245,14 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       } else if (decision === 'INTERNAL') {
         // Internal qualifications (no institution)
         internalRecords.push({
-          mesec_from: month,
-          godina_from: year,
-          mesec_to: '0',
-          godina_to: '0',
-          now_to: 'false',
+          institution: '',
           name: theme,
           hours: '0',
-          institution: '',
+          mesec_from: month,
+          godina_from: year,
+          now_to: 'false',
+          mesec_to: '0',
+          godina_to: '0',
         });
         
         console.log(`✅ Added to INTERNAL`);
@@ -261,14 +261,14 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
         const typeId = mapQualificationType(type);
         
         otherRecords.push({
+          name: theme,
+          type: typeId,
+          institution: institution,
           mesec_from: month,
           godina_from: year,
+          now_to: 'false',
           mesec_to: '0',
           godina_to: '0',
-          now_to: 'false',
-          type: typeId,
-          name: theme,
-          institution: institution,
         });
         
         console.log(`✅ Added to OTHER with type: ${typeId}`);
