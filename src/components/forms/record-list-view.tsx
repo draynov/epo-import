@@ -111,8 +111,17 @@ export function RecordListView({
   // Format cell value based on field type and record data
   const formatCellValue = (field: any, record: Record<string, unknown>) => {
     // Special handling for godina_to when now_to is checked
-    if (field.key === 'godina_to' && record.now_to === true) {
-      return 'До сега';
+    if (field.key === 'godina_to') {
+      const nowTo = record.now_to;
+      // Check for both boolean true and string 'true' / '1'
+      if (nowTo === true || nowTo === 'true' || nowTo === '1' || nowTo === 1) {
+        return 'До сега';
+      }
+      // If godina_to is 0 or '0', likely means "now_to" was intended
+      const value = record[field.key];
+      if (value === 0 || value === '0') {
+        return 'До сега';
+      }
     }
 
     const value = record[field.key];
@@ -130,6 +139,20 @@ export function RecordListView({
       }
       return String(value);
     }
+    
+    // Handle godina_from as string
+    if (field.key === 'godina_from' && typeof value === 'string') {
+      const numValue = parseInt(value);
+      if (!isNaN(numValue) && numValue > 0) {
+        const month = record.mesec_from;
+        const monthNum = typeof month === 'string' ? parseInt(month) : month;
+        if (typeof monthNum === 'number' && monthNum >= 1 && monthNum <= 12) {
+          const monthStr = monthNum.toString().padStart(2, '0');
+          return `${monthStr}.${numValue}`;
+        }
+        return String(numValue);
+      }
+    }
 
     if (field.key === 'godina_to' && typeof value === 'number') {
       const month = record.mesec_to;
@@ -139,13 +162,39 @@ export function RecordListView({
       }
       return String(value);
     }
+    
+    // Handle godina_to as string
+    if (field.key === 'godina_to' && typeof value === 'string') {
+      const numValue = parseInt(value);
+      if (!isNaN(numValue) && numValue > 0) {
+        const month = record.mesec_to;
+        const monthNum = typeof month === 'string' ? parseInt(month) : month;
+        if (typeof monthNum === 'number' && monthNum >= 1 && monthNum <= 12) {
+          const monthStr = monthNum.toString().padStart(2, '0');
+          return `${monthStr}.${numValue}`;
+        }
+        return String(numValue);
+      }
+    }
 
     if (field.key.includes('mesec') && typeof value === 'number') {
       return formatMonth(value);
     }
+    
+    // Handle mesec fields as strings
+    if (field.key.includes('mesec') && typeof value === 'string') {
+      const numValue = parseInt(value);
+      if (!isNaN(numValue)) {
+        return formatMonth(numValue);
+      }
+    }
 
     if (field.type === 'boolean' || field.type === 'checkbox') {
-      return value ? 'Да' : 'Не';
+      // Handle both boolean and string values
+      if (value === true || value === 'true' || value === '1' || value === 1) {
+        return 'Да';
+      }
+      return 'Не';
     }
 
     return String(value);
