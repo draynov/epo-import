@@ -203,16 +203,19 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
         // Decide on structure
         if (!hasTitle && items.length === 1) {
           // Single item with only description - add as text field
+          const textField = {
+            label: sectionTitle,
+            value: items[0].description,
+          };
+          rawTextFields.push(textField);
+          
           const existingSection = sections.find(s => s.title === sectionTitle);
           if (existingSection) {
-            existingSection.textFields.push({
-              label: sectionTitle,
-              value: items[0].description,
-            });
+            existingSection.textFields.push(textField);
           } else {
             sections.push({
               title: sectionTitle,
-              textFields: [{ label: sectionTitle, value: items[0].description }],
+              textFields: [textField],
               tables: [],
               lists: [],
             });
@@ -224,6 +227,9 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
             label: item.title,
             value: item.description,
           }));
+          
+          // Also add to rawTextFields for easy mapper access
+          rawTextFields.push(...textFields);
           
           if (existingSection) {
             existingSection.textFields.push(...textFields);
