@@ -391,7 +391,6 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: true,
           min: 1950,
           max: 2100,
-          showInTable: false,
         },
         {
           key: "now_to",
