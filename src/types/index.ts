@@ -6,6 +6,8 @@
 export type {
   FieldType,
   FieldOption,
+  FieldOptionGroup,
+  FieldOptions,
   PortfolioFieldDefinition,
 } from "./field-types";
 

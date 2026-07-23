@@ -2380,8 +2380,18 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           if (field.type === "boolean") {
                             displayValue = value ? "Да" : "Не";
                           } else if (field.type === "select" && field.options && Array.isArray(field.options)) {
-                            // Find the option with matching value
-                            const option = field.options.find(opt => String(opt.value) === String(value));
+                            // Find the option with matching value (support both flat and grouped options)
+                            let option;
+                            if (field.options.length > 0 && 'options' in field.options[0]) {
+                              // Grouped options (FieldOptionGroup[])
+                              for (const group of field.options as any[]) {
+                                option = group.options.find((opt: any) => String(opt.value) === String(value));
+                                if (option) break;
+                              }
+                            } else {
+                              // Flat options (FieldOption[])
+                              option = (field.options as any[]).find((opt: any) => String(opt.value) === String(value));
+                            }
                             displayValue = option ? option.label : String(value);
                           } else if (field.key.includes("mesec") && typeof value === "number") {
                             displayValue = formatMonth(value);

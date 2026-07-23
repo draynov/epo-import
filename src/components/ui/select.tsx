@@ -9,15 +9,49 @@ export interface SelectOption {
   label: string;
 }
 
+export interface SelectOptionGroup {
+  label: string;
+  options: SelectOption[];
+}
+
+export type SelectOptions = SelectOption[] | SelectOptionGroup[];
+
 export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
-  options: SelectOption[];
+  options: SelectOptions;
   placeholder?: string;
+}
+
+// Type guard to check if options are grouped
+function isGroupedOptions(options: SelectOptions): options is SelectOptionGroup[] {
+  return options.length > 0 && 'options' in options[0];
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className = "", label, error, options, placeholder, ...props }, ref) => {
+    const renderOptions = () => {
+      if (isGroupedOptions(options)) {
+        // Render with optgroups
+        return options.map((group, groupIndex) => (
+          <optgroup key={groupIndex} label={group.label}>
+            {group.options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </optgroup>
+        ));
+      } else {
+        // Render flat options
+        return options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ));
+      }
+    };
+
     return (
       <div className="w-full">
         {label && (
@@ -42,11 +76,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               {placeholder}
             </option>
           )}
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
+          {renderOptions()}
         </select>
         {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
       </div>

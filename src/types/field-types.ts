@@ -21,6 +21,19 @@ export interface FieldOption {
 }
 
 /**
+ * Група от опции за select/multiselect (за optgroup)
+ */
+export interface FieldOptionGroup {
+  label: string;
+  options: FieldOption[];
+}
+
+/**
+ * Опции могат да бъдат flat array или групиран array
+ */
+export type FieldOptions = FieldOption[] | FieldOptionGroup[];
+
+/**
  * Дефиниция на поле в портфолиото
  */
 export interface PortfolioFieldDefinition {
@@ -29,7 +42,7 @@ export interface PortfolioFieldDefinition {
   type: FieldType;
   required: boolean;
   description?: string;
-  options?: FieldOption[];
+  options?: FieldOptions;
   placeholder?: string;
   
   // За date полета
