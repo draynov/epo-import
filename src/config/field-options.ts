@@ -266,3 +266,17 @@ export const COMPETENCES: FieldOptionGroup[] = [
     ],
   },
 ];
+
+/**
+ * Helper: Намира името на групата по стойността на компетентността
+ */
+export function getCompetenceGroup(value: string | number): string | null {
+  const valueStr = String(value);
+  for (const group of COMPETENCES) {
+    const found = group.options.find(opt => String(opt.value) === valueStr);
+    if (found) {
+      return group.label;
+    }
+  }
+  return null;
+}

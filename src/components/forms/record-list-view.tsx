@@ -10,6 +10,7 @@ import { RecordListSubsectionDefinition } from "@/types";
 import { Button } from "@/components/ui";
 import { RecordModal } from "./record-modal";
 import { MONTHS } from "@/config/date-options";
+import { getCompetenceGroup } from "@/config/field-options";
 
 export interface RecordListViewProps {
   subsection: RecordListSubsectionDefinition;
@@ -204,6 +205,7 @@ export function RecordListView({
   };
 
   const displayFields = getDisplayFields();
+  const isCompetencesSubsection = subsectionId === "competences";
 
   return (
     <div className="space-y-4">
@@ -225,6 +227,11 @@ export function RecordListView({
                     {field.label}
                   </th>
                 ))}
+                {isCompetencesSubsection && (
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Група
+                  </th>
+                )}
                 <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
                   Действия
                 </th>
@@ -238,6 +245,11 @@ export function RecordListView({
                       {formatCellValue(field, record)}
                     </td>
                   ))}
+                  {isCompetencesSubsection && (
+                    <td className="px-4 py-3 text-sm text-gray-700">
+                      {getCompetenceGroup(record.competence as string | number) || '-'}
+                    </td>
+                  )}
                   <td className="px-4 py-3 text-right text-sm">
                     <button
                       onClick={() => handleMoveUp(idx)}
