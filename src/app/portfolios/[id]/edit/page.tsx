@@ -42,6 +42,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [isSyncingProfessional, setIsSyncingProfessional] = useState(false);
   const [isSyncingCredits, setIsSyncingCredits] = useState(false);
   const [isSyncingInternal, setIsSyncingInternal] = useState(false);
+  const [isSyncingQualifications, setIsSyncingQualifications] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [positionsSyncMessage, setPositionsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [educationSyncMessage, setEducationSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -49,6 +50,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [professionalSyncMessage, setProfessionalSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [creditsSyncMessage, setCreditsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [internalSyncMessage, setInternalSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [qualificationsSyncMessage, setQualificationsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Load portfolio and all subsection data
   useEffect(() => {
@@ -726,6 +728,86 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     }
   };
 
+  // Sync other qualifications to EPO API
+  const handleSyncQualifications = async () => {
+    if (!portfolio) return;
+    
+    console.log('🟡 CLIENT: Starting other qualifications sync...');
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setQualificationsSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    // Get other qualifications data
+    const qualificationsData = allSubsectionData['other-qualifications'] as { records?: Array<Record<string, unknown>> } || {};
+    const qualifications = qualificationsData.records || [];
+    
+    console.log('🟡 CLIENT: Other qualifications data:', qualifications);
+    
+    if (qualifications.length === 0) {
+      setQualificationsSyncMessage({
+        type: 'error',
+        text: 'Няма данни за други квалификации. Моля, добавете поне един запис.'
+      });
+      return;
+    }
+    
+    setIsSyncingQualifications(true);
+    setQualificationsSyncMessage(null);
+    
+    try {
+      console.log('🟡 CLIENT: Calling /api/epo-sync-qualifications...');
+      
+      const response = await fetch('/api/epo-sync-qualifications', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
+          records: qualifications,
+        }),
+      });
+      
+      console.log('🟡 CLIENT: Response status:', response.status);
+      
+      const data = await response.json();
+      
+      console.log('🟡 CLIENT: Response data:', data);
+      
+      if (data.success) {
+        setQualificationsSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! Синхронизирани ${data.successCount} от ${data.totalRecords} записа.`
+        });
+      } else {
+        setQualificationsSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('🟡 CLIENT: Other qualifications sync error:', error);
+      setQualificationsSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncingQualifications(false);
+      
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setQualificationsSyncMessage(null);
+      }, 5000);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -1342,6 +1424,58 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             )}
                           </Button>
                         )}
+                        {subsection.subsectionId === "other-qualifications" && (
+                          <Button
+                            size="sm"
+                            onClick={handleSyncQualifications}
+                            disabled={isSyncingQualifications || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSyncingQualifications ? (
+                              <>
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-1"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Синхронизиране...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                                Синхронизирай
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     )}
                     {!hasModal && (
@@ -1634,6 +1768,54 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           internalSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
                         }`}>
                           {internalSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Other Qualifications Sync Status Message */}
+                  {subsection.subsectionId === "other-qualifications" && qualificationsSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      qualificationsSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {qualificationsSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          qualificationsSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {qualificationsSyncMessage.text}
                         </p>
                       </div>
                     </div>
