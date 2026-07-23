@@ -244,8 +244,7 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
         console.log(`✅ Added to CREDITS with quantity: ${quantity}`);
       } else if (decision === 'INTERNAL') {
         // Internal qualifications (no institution)
-        // Note: now_to is false (not checked), mesec_to and godina_to are empty
-        // "До сега" is a UI option, not set during import
+        // Note: Copy mesec_from/godina_from to mesec_to/godina_to (required by EPO)
         internalRecords.push({
           institution: '',
           name: theme,
@@ -253,15 +252,14 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
           mesec_from: month,
           godina_from: year,
           now_to: false,
-          mesec_to: '',
-          godina_to: '',
+          mesec_to: month,
+          godina_to: year,
         });
         
         console.log(`✅ Added to INTERNAL`);
       } else {
         // Other qualifications (has institution, no credits)
-        // Note: now_to is false (not checked), mesec_to and godina_to are empty
-        // "До сега" is a UI option, not set during import
+        // Note: Copy mesec_from/godina_from to mesec_to/godina_to (required by EPO)
         const typeId = mapQualificationType(type);
         
         otherRecords.push({
@@ -271,8 +269,8 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
           mesec_from: month,
           godina_from: year,
           now_to: false,
-          mesec_to: '',
-          godina_to: '',
+          mesec_to: month,
+          godina_to: year,
         });
         
         console.log(`✅ Added to OTHER with type: ${typeId}`);
