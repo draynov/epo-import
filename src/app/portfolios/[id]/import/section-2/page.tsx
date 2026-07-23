@@ -63,8 +63,8 @@ export default function Section2ImportPage({
     // Save mapping to session
     ImportSessionStorage.saveSectionMapping(2, selectedMapping);
 
-    // Redirect to review page (or Section 3 when ready)
-    router.push(`/portfolios/${id}/import/review`);
+    // Redirect to Section 3
+    router.push(`/portfolios/${id}/import/section-3`);
   };
 
   const handleCancel = () => {

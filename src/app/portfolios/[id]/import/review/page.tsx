@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { ImportSessionStorage } from '@/lib/storage/import-session-storage';
 import { Section1Mapping } from '@/lib/mapping/section-1-mapper';
 import { Section2Mapping } from '@/lib/mapping/section-2-mapper';
+import { Section3Mapping } from '@/lib/mapping/section-3-mapper';
 import { supabaseSubsectionDataStorage } from '@/lib/storage/supabase-subsection-data-storage';
 
 export default function ImportReviewPage({
@@ -25,6 +26,7 @@ export default function ImportReviewPage({
   const [completedSections, setCompletedSections] = useState<number[]>([]);
   const [section1Mapping, setSection1Mapping] = useState<Section1Mapping | null>(null);
   const [section2Mapping, setSection2Mapping] = useState<Section2Mapping | null>(null);
+  const [section3Mapping, setSection3Mapping] = useState<Section3Mapping | null>(null);
 
   useEffect(() => {
     // Check if there's an active import session
@@ -41,10 +43,12 @@ export default function ImportReviewPage({
     // Get section mappings
     const section1 = ImportSessionStorage.getSectionMapping(1) as Section1Mapping | null;
     const section2 = ImportSessionStorage.getSectionMapping(2) as Section2Mapping | null;
+    const section3 = ImportSessionStorage.getSectionMapping(3) as Section3Mapping | null;
     setSection1Mapping(section1);
     setSection2Mapping(section2);
+    setSection3Mapping(section3);
 
-    if (!section1 && !section2) {
+    if (!section1 && !section2 && !section3) {
       setError('Не са намерени мапинги. Моля, завършете поне една секция.');
       setLoading(false);
       return;
@@ -54,7 +58,7 @@ export default function ImportReviewPage({
   }, []);
 
   const handleConfirmImport = async () => {
-    if (!section1Mapping && !section2Mapping) return;
+    if (!section1Mapping && !section2Mapping && !section3Mapping) return;
 
     setImporting(true);
     setError(null);
@@ -118,11 +122,35 @@ export default function ImportReviewPage({
         }
       }
 
+      // Import Section 3 data (Teaching Methods and Philosophy)
+      if (section3Mapping) {
+        console.log('🎓 Импортиране на Секция 3...');
+        
+        // Group fields by subsection
+        const fieldsBySubsection: Record<string, Record<string, string>> = {};
+        
+        section3Mapping.fields.forEach((field) => {
+          if (!fieldsBySubsection[field.subsectionId]) {
+            fieldsBySubsection[field.subsectionId] = {};
+          }
+          fieldsBySubsection[field.subsectionId][field.targetField] = field.sourceValue;
+        });
+
+        // Save direct_fields data
+        for (const [subsectionId, data] of Object.entries(fieldsBySubsection)) {
+          console.log(`🎓 Записване на ${subsectionId}:`, data);
+          await supabaseSubsectionDataStorage.saveData(id, subsectionId, data);
+        }
+      }
+
       // Clear import session
       ImportSessionStorage.clearSession();
 
       // Success - redirect to edit page
-      const totalFields = (section1Mapping?.fields.length || 0) + (section2Mapping?.fields.length || 0);
+      const totalFields = 
+        (section1Mapping?.fields.length || 0) + 
+        (section2Mapping?.fields.length || 0) +
+        (section3Mapping?.fields.length || 0);
       const totalRecords = 
         (section1Mapping?.records.reduce((sum, r) => sum + r.records.length, 0) || 0) +
         (section2Mapping?.records.reduce((sum, r) => sum + r.records.length, 0) || 0);

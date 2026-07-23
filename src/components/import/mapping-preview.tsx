@@ -22,6 +22,7 @@ interface MappingPreviewProps {
   sectionTitle: string;
   onConfirm: (selectedMappings: GenericMapping) => void;
   onCancel: () => void;
+  onSkip?: () => void; // Optional skip button
 }
 
 export function MappingPreview({ 
@@ -30,7 +31,8 @@ export function MappingPreview({
   sectionNumber, 
   sectionTitle,
   onConfirm, 
-  onCancel 
+  onCancel,
+  onSkip
 }: MappingPreviewProps) {
   const [selectedFields, setSelectedFields] = useState<Set<string>>(
     new Set(mapping.fields.map(f => f.targetField))
@@ -255,6 +257,14 @@ export function MappingPreview({
           </svg>
           Назад
         </button>
+        {onSkip && (
+          <button
+            onClick={onSkip}
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
+            Пропусни секцията →
+          </button>
+        )}
         <button
           onClick={handleConfirm}
           disabled={totalSelected === 0}
