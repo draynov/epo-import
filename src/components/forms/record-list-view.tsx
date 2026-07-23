@@ -192,6 +192,14 @@ export function RecordListView({
       return 'Не';
     }
 
+    // Handle select fields with options
+    if (field.type === 'select' && field.options && Array.isArray(field.options)) {
+      const option = field.options.find((opt: any) => opt.value === value);
+      if (option) {
+        return option.label;
+      }
+    }
+
     return String(value);
   };
 
