@@ -186,7 +186,7 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       const titleField = row['Заглавие'] || row['заглавие'] || '';
       const descriptionField = row['Описание'] || row['описание'] || '';
       
-      // Split description by lines
+      // Split description by lines and clean thoroughly
       const descriptionLines = descriptionField
         .split(/\n+/)
         .map(line => line.trim())
@@ -194,24 +194,32 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       
       // Line 0: Theme/Name (with quotes removed)
       const theme = descriptionLines[0]?.replace(/^[""]|[""]$/g, '').trim() || '';
-      // Last line: Check for credits
-      const lastLine = descriptionLines[descriptionLines.length - 1] || '';
       
       // Extract date and type from title
       const { month, year, type } = parseQualificationTitle(titleField);
       
-      // Determine which subsection this record belongs to based on line count
-      const hasCredits = lastLine.toLowerCase().includes('квалификационен кредит') || 
-                         lastLine.toLowerCase().includes('кредита');
+      // Check all lines for credits (not just last line, in case of formatting issues)
+      const hasCreditsInDescription = descriptionLines.some(line => {
+        const lowerLine = line.toLowerCase().trim();
+        return lowerLine.includes('кредит') || 
+               lowerLine.includes('kredita') ||
+               lowerLine.match(/\d+\s*(?:квалификационен|кредит)/i);
+      });
       
-      if (hasCredits) {
+      if (hasCreditsInDescription) {
         // Credits subsection (3 lines: theme, institution, credits)
-        // Extract quantity (1 or 2 credits)
-        const quantityMatch = lastLine.match(/(\d+)\s*(?:квалификационен\s*кредит|кредита)/i);
+        // Find the line with credits to extract quantity
+        const creditLine = descriptionLines.find(line => 
+          line.toLowerCase().includes('кредит')
+        ) || '';
+        
+        const quantityMatch = creditLine.match(/(\d+)\s*(?:квалификационен\s*кредит|кредита)/i);
         const quantity = quantityMatch ? quantityMatch[1] : '1';
         
-        // Institution is on line 1 (before the credits line)
-        const institution = descriptionLines.length > 1 ? descriptionLines[descriptionLines.length - 2] : '';
+        // Institution is typically the line before the credits line (or line 1 if 3 lines)
+        const institution = descriptionLines.length >= 2 
+          ? descriptionLines[descriptionLines.length - 2] 
+          : '';
         
         creditsRecords.push({
           mesec: month,
