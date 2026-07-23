@@ -197,6 +197,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
@@ -219,6 +220,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_to",
@@ -255,6 +257,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           type: "text",
           required: true,
           maxLength: 50,
+          showInTable: false,
         },
         {
           key: "institution",
