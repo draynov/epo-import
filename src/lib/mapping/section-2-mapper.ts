@@ -181,16 +181,22 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
     const internalRecords: any[] = [];
     const otherRecords: any[] = [];
     
-    table.rows.forEach(row => {
+    table.rows.forEach((row, rowIndex) => {
       // Extract date from title (e.g., "12/07/2024 - Удостоверение")
       const titleField = row['Заглавие'] || row['заглавие'] || '';
       const descriptionField = row['Описание'] || row['описание'] || '';
+      
+      console.log(`\n🔍 === PROCESSING ROW ${rowIndex + 1} ===`);
+      console.log('📄 RAW DESCRIPTION:', JSON.stringify(descriptionField));
       
       // Split description by lines and clean thoroughly
       const descriptionLines = descriptionField
         .split(/\n+/)
         .map(line => line.trim())
         .filter(line => line.length > 0);
+      
+      console.log('📋 SPLIT INTO LINES:', descriptionLines);
+      console.log('📊 LINE COUNT:', descriptionLines.length);
       
       // Line 0: Theme/Name (with quotes removed)
       const theme = descriptionLines[0]?.replace(/^[""]|[""]$/g, '').trim() || '';
@@ -199,27 +205,31 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       const { month, year, type } = parseQualificationTitle(titleField);
       
       // Check all lines for credits (comprehensive detection)
-      const hasCreditsInDescription = descriptionLines.some(line => {
+      console.log('🔎 Checking each line for credits...');
+      const hasCreditsInDescription = descriptionLines.some((line, lineIndex) => {
         const lowerLine = line.toLowerCase().trim();
+        console.log(`  Line ${lineIndex}: "${line}"`);
+        console.log(`  Lowercase: "${lowerLine}"`);
+        
         // Multiple detection methods for maximum coverage
         const hasKeyword = lowerLine.includes('кредит');
-        const hasPattern = /\d+\s*(?:квалификационен|квалификационни|кредит|кредита)/i.test(lowerLine);
+        const hasPattern = /\d+\s*(?:квалификационен|квалификационні|кредит|кредита)/i.test(lowerLine);
+        
+        console.log(`  Has keyword 'кредит': ${hasKeyword}`);
+        console.log(`  Matches pattern: ${hasPattern}`);
         
         if (hasKeyword || hasPattern) {
-          console.log('✅ CREDITS DETECTED in line:', line);
+          console.log('  ✅ CREDITS DETECTED in this line!');
+          return true;
         }
-        
-        return hasKeyword || hasPattern;
+        console.log(`  ❌ No credits detected in this line`);
+        return false;
       });
       
-      console.log('🔍 Processing qualification:', {
-        title: titleField.substring(0, 50),
-        theme: theme.substring(0, 50),
-        lineCount: descriptionLines.length,
-        lines: descriptionLines,
-        hasCredits: hasCreditsInDescription,
-        decision: hasCreditsInDescription ? 'CREDITS' : (descriptionLines.length === 1 ? 'INTERNAL' : 'OTHER')
-      });
+      const decision = hasCreditsInDescription ? 'CREDITS' : (descriptionLines.length === 1 ? 'INTERNAL' : 'OTHER');
+      console.log(`\n🎯 FINAL DECISION: ${decision}`);
+      console.log(`   Has credits: ${hasCreditsInDescription}`);
+      console.log(`   Line count: ${descriptionLines.length}`);
       
       if (hasCreditsInDescription) {
         // Credits subsection (3 lines: theme, institution, credits)
