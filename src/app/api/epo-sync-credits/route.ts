@@ -93,22 +93,16 @@ export async function POST(request: NextRequest) {
     // Check if all succeeded
     const allSucceeded = results.every((r) => r.success);
     const successCount = results.filter((r) => r.success).length;
+    const errorCount = results.length - successCount;
 
-    if (allSucceeded) {
-      return NextResponse.json({
-        success: true,
-        message: `Синхронизирани ${successCount} квалификационни кредита`,
-      });
-    } else {
-      const errorMessages = results
-        .filter((r) => !r.success)
-        .map((r) => r.error)
-        .join(', ');
-      return NextResponse.json({
-        success: false,
-        error: `Успешни: ${successCount}, Грешки: ${results.length - successCount}. ${errorMessages}`,
-      });
-    }
+    return NextResponse.json({
+      success: allSucceeded,
+      successCount,
+      errorCount,
+      totalRecords: credits.length,
+      message: allSucceeded ? `Синхронизирани ${successCount} квалификационни кредита` : undefined,
+      results,
+    });
   } catch (error) {
     console.error('🔵 SERVER: Credits sync error:', error);
     return NextResponse.json(

@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { EPO_API_CONFIG, EpoApiResponse } from '@/lib/api/epo-api-types';
 
 interface QualificationRecord {
   mesec_from?: number;
@@ -22,21 +23,6 @@ interface RequestBody {
   epoUserId: string;
   records: QualificationRecord[];
 }
-
-interface EpoApiSuccessResponse {
-  Message: string;
-}
-
-interface EpoApiErrorResponse {
-  Error: string;
-}
-
-type EpoApiResponse = EpoApiSuccessResponse | EpoApiErrorResponse;
-
-const EPO_API_CONFIG = {
-  baseUrl: 'https://epo.bg/api2/',
-  token: process.env.EPO_API_TOKEN || '',
-};
 
 export async function POST(request: NextRequest) {
   try {
@@ -82,7 +68,7 @@ export async function POST(request: NextRequest) {
         portfolio: epoPortfolioId,
         users: epoUserId,
         cmd: 'qualifications',
-        token: EPO_API_CONFIG.token,
+        token: EPO_API_CONFIG.TOKEN,
         mesec_from: String(record.mesec_from || 0),
         godina_from: String(record.godina_from),
         mesec_to: String(record.mesec_to || 0),
@@ -94,7 +80,7 @@ export async function POST(request: NextRequest) {
       });
 
       try {
-        const response = await fetch(EPO_API_CONFIG.baseUrl, {
+        const response = await fetch(EPO_API_CONFIG.BASE_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',

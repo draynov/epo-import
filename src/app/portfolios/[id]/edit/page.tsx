@@ -626,7 +626,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       if (data.success) {
         setCreditsSyncMessage({
           type: 'success',
-          text: `Успешна синхронизация! ${data.message}`
+          text: `Успешна синхронизация! Синхронизирани ${data.successCount} от ${data.totalRecords} записа.`
         });
       } else {
         setCreditsSyncMessage({
@@ -866,7 +866,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       if (data.success) {
         setLanguagesSyncMessage({
           type: 'success',
-          text: `Успешна синхронизация! Синхронизирани ${data.successCount} от ${languages.length} записа.`
+          text: `Успешна синхронизация! Синхронизирани ${data.successCount} от ${data.totalRecords} записа.`
         });
       } else {
         setLanguagesSyncMessage({

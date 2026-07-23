@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { EPO_API_CONFIG, EpoApiResponse } from '@/lib/api/epo-api-types';
 
 interface LanguageRecord {
   language: number;
@@ -16,21 +17,6 @@ interface RequestBody {
   epoUserId: string;
   records: LanguageRecord[];
 }
-
-interface EpoApiSuccessResponse {
-  Message: string;
-}
-
-interface EpoApiErrorResponse {
-  Error: string;
-}
-
-type EpoApiResponse = EpoApiSuccessResponse | EpoApiErrorResponse;
-
-const EPO_API_CONFIG = {
-  baseUrl: 'https://epo.bg/api2/',
-  token: process.env.EPO_API_TOKEN || '',
-};
 
 export async function POST(request: NextRequest) {
   try {
@@ -73,13 +59,13 @@ export async function POST(request: NextRequest) {
         portfolio: epoPortfolioId,
         users: epoUserId,
         cmd: 'languages',
-        token: EPO_API_CONFIG.token,
+        token: EPO_API_CONFIG.TOKEN,
         language: String(record.language),
         level: String(record.level),
       });
 
       try {
-        const response = await fetch(EPO_API_CONFIG.baseUrl, {
+        const response = await fetch(EPO_API_CONFIG.BASE_URL, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -132,6 +118,7 @@ export async function POST(request: NextRequest) {
       success: errorCount === 0,
       successCount,
       errorCount,
+      totalRecords: records.length,
       results,
     });
   } catch (error) {
