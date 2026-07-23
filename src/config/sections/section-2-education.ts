@@ -34,6 +34,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
