@@ -1955,6 +1955,54 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                     </div>
                   )}
                   
+                  {/* Languages Sync Status Message */}
+                  {subsection.subsectionId === "languages" && languagesSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      languagesSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {languagesSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          languagesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {languagesSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Data Visualization */}
                   {hasData && subsection.type === "direct_fields" && (
                     <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-md">
