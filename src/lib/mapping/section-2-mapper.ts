@@ -198,12 +198,17 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       // Extract date and type from title
       const { month, year, type } = parseQualificationTitle(titleField);
       
-      // Check all lines for credits (not just last line, in case of formatting issues)
+      // Check all lines for credits (comprehensive detection)
       const hasCreditsInDescription = descriptionLines.some(line => {
         const lowerLine = line.toLowerCase().trim();
-        // More flexible credit detection
-        const hasKeyword = lowerLine.includes('кредит') || lowerLine.includes('кредита');
-        const hasPattern = lowerLine.match(/\d+\s*(?:квалификационн|кредит)/i);
+        // Multiple detection methods for maximum coverage
+        const hasKeyword = lowerLine.includes('кредит');
+        const hasPattern = /\d+\s*(?:квалификационен|квалификационни|кредит|кредита)/i.test(lowerLine);
+        
+        if (hasKeyword || hasPattern) {
+          console.log('✅ CREDITS DETECTED in line:', line);
+        }
+        
         return hasKeyword || hasPattern;
       });
       
