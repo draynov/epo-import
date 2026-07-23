@@ -11,7 +11,7 @@ export interface TextareaProps
 }
 
 export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
-  ({ className = "", label, error, rows = 4, ...props }, ref) => {
+  ({ className = "", label, error, rows = 4, disabled, ...props }, ref) => {
     return (
       <div className="w-full">
         {label && (
@@ -23,6 +23,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         <textarea
           ref={ref}
           rows={rows}
+          disabled={disabled}
           className={`
             w-full px-3 py-2 border rounded-md text-gray-900 
             focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
