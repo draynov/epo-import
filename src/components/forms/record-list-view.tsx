@@ -104,15 +104,8 @@ export function RecordListView({
 
   // Determine which fields to display in table
   const getDisplayFields = () => {
-    // Priority fields to show: institution, position first, then others
-    const priorityKeys = ['institution', 'position', 'godina_from', 'godina_to', 'dlyvnost', 'name', 'specialty'];
-    const filtered = subsection.fields.filter(f => priorityKeys.includes(f.key));
-    // Sort to ensure institution and position are first
-    return filtered.sort((a, b) => {
-      const aIndex = priorityKeys.indexOf(a.key);
-      const bIndex = priorityKeys.indexOf(b.key);
-      return aIndex - bIndex;
-    });
+    // Filter fields based on showInTable property (default true)
+    return subsection.fields.filter(f => f.showInTable !== false);
   };
 
   // Format cell value based on field type and record data

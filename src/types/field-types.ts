@@ -49,4 +49,7 @@ export interface PortfolioFieldDefinition {
     field: string;
     value: string | number;
   };
+  
+  // За record list tables - дали да се показва в таблицата
+  showInTable?: boolean; // По подразбиране true
 }

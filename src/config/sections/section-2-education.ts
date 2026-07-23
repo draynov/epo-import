@@ -308,6 +308,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           type: "select",
           required: true,
           options: OPTIONS.CREDIT_DURATIONS,
+          showInTable: false,
         },
         {
           key: "mesec",
@@ -316,6 +317,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: true,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina",
@@ -349,6 +351,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           type: "text",
           required: true,
           maxLength: 150,
+          showInTable: false,
         },
         {
           key: "name",
@@ -363,6 +366,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           type: "text",
           required: true,
           maxLength: 50,
+          showInTable: false,
         },
         {
           key: "mesec_from",
@@ -371,6 +375,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
@@ -385,6 +390,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           label: "До сега",
           type: "checkbox",
           required: false,
+          showInTable: false,
         },
         {
           key: "mesec_to",
@@ -393,6 +399,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_to",
@@ -448,6 +455,7 @@ export const SECTION_2_EDUCATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
