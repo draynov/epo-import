@@ -167,8 +167,8 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
   // Map qualifications and trainings (Квалификации и обучения)
   // This section distributes records to 3 subsections based on content:
   // 1. Credits (credits) - if last line contains "квалификационен кредит" or "кредита"
-  // 2. Internal qualifications (internal-qualifications) - if no institution (3rd line missing)
-  // 3. Professional qualifications (professional-qualifications) - all others
+  // 2. Internal qualifications (internal-qualifications) - if no institution (only 1 line)
+  // 3. Other qualifications (other-qualifications) - all others (2+ lines, no credits)
   const qualificationsSection = parsedData.sections.find(
     s => s.title?.toLowerCase().includes('квалификации') && 
          s.title?.toLowerCase().includes('обучения')
@@ -179,7 +179,7 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
     
     const creditsRecords: any[] = [];
     const internalRecords: any[] = [];
-    const professionalRecords: any[] = [];
+    const otherRecords: any[] = [];
     
     table.rows.forEach(row => {
       // Extract date from title (e.g., "12/07/2024 - Удостоверение")
@@ -202,17 +202,18 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       const hasCreditsInDescription = descriptionLines.some(line => {
         const lowerLine = line.toLowerCase().trim();
         // More flexible credit detection
-        return lowerLine.includes('кредит') || 
-               lowerLine.includes('кредита') ||
-               lowerLine.match(/\d+\s*(?:квалификационн|кредит)/i);
+        const hasKeyword = lowerLine.includes('кредит') || lowerLine.includes('кредита');
+        const hasPattern = lowerLine.match(/\d+\s*(?:квалификационн|кредит)/i);
+        return hasKeyword || hasPattern;
       });
       
       console.log('🔍 Processing qualification:', {
         title: titleField.substring(0, 50),
         theme: theme.substring(0, 50),
         lineCount: descriptionLines.length,
-        lines: descriptionLines.map(l => l.substring(0, 60)),
-        hasCredits: hasCreditsInDescription
+        lines: descriptionLines,
+        hasCredits: hasCreditsInDescription,
+        decision: hasCreditsInDescription ? 'CREDITS' : (descriptionLines.length === 1 ? 'INTERNAL' : 'OTHER')
       });
       
       if (hasCreditsInDescription) {
@@ -251,19 +252,20 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
           institution: '', // No institution for internal
         });
       } else {
-        // Professional qualifications (2 lines: theme, institution, no credits)
+        // Other qualifications (2 lines: theme, institution, no credits)
         const institution = descriptionLines[1] || '';
         
-        professionalRecords.push({
+        // Map type text to numeric ID (default to 0 if not found)
+        const typeId = mapQualificationType(type);
+        
+        otherRecords.push({
           mesec_from: month,
           godina_from: year,
           mesec_to: '0',
           godina_to: '0',
           now_to: 'false',
+          type: typeId,
           name: theme,
-          specialty: '', // Can be extracted if present
-          pks: '1', // Default PKS level
-          hours: '0', // Can be extracted if present
           institution: institution,
         });
       }
@@ -291,12 +293,12 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       });
     }
     
-    // Add professional qualifications records if any
-    if (professionalRecords.length > 0) {
+    // Add other qualifications records if any
+    if (otherRecords.length > 0) {
       records.push({
-        targetSubsection: 'professional-qualifications',
-        targetLabel: 'Професионални квалификации',
-        records: professionalRecords,
+        targetSubsection: 'other-qualifications',
+        targetLabel: 'Други квалификации',
+        records: otherRecords,
         sourceTable: qualificationsSection.title || 'Квалификации и обучения',
         confidence: 'high',
       });
@@ -304,6 +306,52 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
   }
 
   return { fields, records };
+}
+
+/**
+ * Map qualification type text to numeric ID
+ * Based on qualification types from EPO API
+ * 0: Професионална квалификация, 1: Квалификационен курс, 2: Семинар, 
+ * 3: Конференция, 4: Обучителен курс, 5: Специализация, 
+ * 6: Удостоверение, 7: Педагогическа правоспособност, 8: Сертификат, 9: Уебинар
+ */
+function mapQualificationType(typeText: string): string {
+  const lowerType = typeText.toLowerCase().trim();
+
+  // Map common qualification types
+  if (lowerType.includes('професионална') && lowerType.includes('квалификация')) {
+    return '0'; // Професионална квалификация
+  }
+  if (lowerType.includes('квалификационен') && lowerType.includes('курс')) {
+    return '1'; // Квалификационен курс
+  }
+  if (lowerType.includes('семинар')) {
+    return '2'; // Семинар
+  }
+  if (lowerType.includes('конференция')) {
+    return '3'; // Конференция
+  }
+  if (lowerType.includes('обучителен') && lowerType.includes('курс')) {
+    return '4'; // Обучителен курс
+  }
+  if (lowerType.includes('специализация')) {
+    return '5'; // Специализация
+  }
+  if (lowerType.includes('удостоверение')) {
+    return '6'; // Удостоверение
+  }
+  if (lowerType.includes('педагогическа') && lowerType.includes('правоспособност')) {
+    return '7'; // Педагогическа правоспособност
+  }
+  if (lowerType.includes('сертификат')) {
+    return '8'; // Сертификат
+  }
+  if (lowerType.includes('уебинар') || lowerType.includes('webinar')) {
+    return '9'; // Уебинар
+  }
+
+  // Default to удостоверение (6) if not found
+  return '6';
 }
 
 /**
