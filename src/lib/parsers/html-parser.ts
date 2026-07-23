@@ -197,6 +197,9 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
         // Check if this is Qualifications section (needs special parsing)
         const isQualificationsSection = sectionTitle.toLowerCase().includes('квалификаци');
         
+        // Check if this is Information section (should be text fields, not tables)
+        const isInformationSection = sectionTitle.toLowerCase().includes('информация') || sectionTitle.toLowerCase().includes('information');
+        
         // Decide on structure
         if (!hasTitle && items.length === 1) {
           // Single item with only description - add as text field
@@ -210,6 +213,24 @@ export function parseHTMLContent(htmlContent: string): ParsedHTMLData {
             sections.push({
               title: sectionTitle,
               textFields: [{ label: sectionTitle, value: items[0].description }],
+              tables: [],
+              lists: [],
+            });
+          }
+        } else if (isInformationSection && !hasTime) {
+          // Information section without time periods - add as text fields
+          const existingSection = sections.find(s => s.title === sectionTitle);
+          const textFields = items.map(item => ({
+            label: item.title,
+            value: item.description,
+          }));
+          
+          if (existingSection) {
+            existingSection.textFields.push(...textFields);
+          } else {
+            sections.push({
+              title: sectionTitle,
+              textFields: textFields,
               tables: [],
               lists: [],
             });
