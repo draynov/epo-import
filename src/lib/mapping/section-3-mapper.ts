@@ -1,6 +1,7 @@
 /**
  * Mapping service for Section 3: Practical Application
  * Maps parsed HTML data to Section 3 structure (Teaching Methods and Philosophy)
+ * Extracts exactly 2 fields: one for teaching methods and one for teaching philosophy
  */
 
 import { ParsedHTMLData } from '@/lib/parsers/html-parser';
