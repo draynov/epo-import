@@ -182,80 +182,68 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
     const otherRecords: any[] = [];
     
     table.rows.forEach((row, rowIndex) => {
-      // Extract date from title (e.g., "12/07/2024 - Удостоверение")
-      const titleField = row['Заглавие'] || row['заглавие'] || '';
-      const descriptionField = row['Описание'] || row['описание'] || '';
-      
       console.log(`\n🔍 === PROCESSING ROW ${rowIndex + 1} ===`);
-      console.log('📄 RAW DESCRIPTION:', JSON.stringify(descriptionField));
+      console.log('📄 RAW ROW DATA:', JSON.stringify(row, null, 2));
       
-      // Split description by lines and clean thoroughly
-      const descriptionLines = descriptionField
-        .split(/\n+/)
-        .map(line => line.trim())
-        .filter(line => line.length > 0);
+      // For qualifications section, parser creates these columns:
+      // 'Период', 'Име на обучение', 'Обучаваща институция', 'Брой кредити'
+      const periodField = row['Период'] || row['период'] || '';
+      const themeField = row['Име на обучение'] || row['име на обучение'] || '';
+      const institutionField = row['Обучаваща институция'] || row['обучаваща институция'] || '';
+      const creditsField = row['Брой кредити'] || row['брой кредити'] || '';
       
-      console.log('📋 SPLIT INTO LINES:', descriptionLines);
-      console.log('📊 LINE COUNT:', descriptionLines.length);
+      // Extract date and type from period (e.g., "12/07/2024 - Удостоверение")
+      const { month, year, type } = parseQualificationTitle(periodField);
       
-      // Line 0: Theme/Name (with quotes removed)
-      const theme = descriptionLines[0]?.replace(/^[""]|[""]$/g, '').trim() || '';
+      // Clean theme (remove quotes)
+      const theme = themeField.replace(/^[""]|[""]$/g, '').trim();
+      const institution = institutionField.trim();
+      const creditsText = creditsField.trim();
       
-      // Extract date and type from title
-      const { month, year, type } = parseQualificationTitle(titleField);
+      console.log('📋 EXTRACTED FIELDS:');
+      console.log(`   Period: "${periodField}"`);
+      console.log(`   Theme: "${theme}"`);
+      console.log(`   Institution: "${institution}"`);
+      console.log(`   Credits: "${creditsText}"`);
       
-      // Check all lines for credits (comprehensive detection)
-      console.log('🔎 Checking each line for credits...');
-      const hasCreditsInDescription = descriptionLines.some((line, lineIndex) => {
-        const lowerLine = line.toLowerCase().trim();
-        console.log(`  Line ${lineIndex}: "${line}"`);
-        console.log(`  Lowercase: "${lowerLine}"`);
-        
-        // Multiple detection methods for maximum coverage
-        const hasKeyword = lowerLine.includes('кредит');
-        const hasPattern = /\d+\s*(?:квалификационен|квалификационні|кредит|кредита)/i.test(lowerLine);
-        
-        console.log(`  Has keyword 'кредит': ${hasKeyword}`);
-        console.log(`  Matches pattern: ${hasPattern}`);
-        
-        if (hasKeyword || hasPattern) {
-          console.log('  ✅ CREDITS DETECTED in this line!');
-          return true;
-        }
-        console.log(`  ❌ No credits detected in this line`);
-        return false;
-      });
+      // Check if this record has credits
+      const hasCredits = creditsText.length > 0 && creditsText.toLowerCase().includes('кредит');
       
-      const decision = hasCreditsInDescription ? 'CREDITS' : (descriptionLines.length === 1 ? 'INTERNAL' : 'OTHER');
+      console.log(`\n🔎 Credits Detection:`);
+      console.log(`   Credits field has text: ${creditsText.length > 0}`);
+      console.log(`   Contains 'кредит': ${creditsText.toLowerCase().includes('кредит')}`);
+      console.log(`   Has credits: ${hasCredits}`);
+      
+      // Decision logic
+      let decision: 'CREDITS' | 'INTERNAL' | 'OTHER';
+      
+      if (hasCredits) {
+        decision = 'CREDITS';
+      } else if (!institution || institution.length === 0) {
+        decision = 'INTERNAL';
+      } else {
+        decision = 'OTHER';
+      }
+      
       console.log(`\n🎯 FINAL DECISION: ${decision}`);
-      console.log(`   Has credits: ${hasCreditsInDescription}`);
-      console.log(`   Line count: ${descriptionLines.length}`);
       
-      if (hasCreditsInDescription) {
-        // Credits subsection (3 lines: theme, institution, credits)
-        // Find the line with credits to extract quantity
-        const creditLine = descriptionLines.find(line => 
-          line.toLowerCase().includes('кредит')
-        ) || '';
-        
-        const quantityMatch = creditLine.match(/(\d+)\s*(?:квалификационен\s*кредит|кредита)/i);
+      if (decision === 'CREDITS') {
+        // Extract quantity from credits text
+        const quantityMatch = creditsText.match(/(\d+)\s*(?:квалификационен|квалификационні|кредит|кредита)/i);
         const quantity = quantityMatch ? quantityMatch[1] : '1';
-        
-        // Institution is typically the line before the credits line (or line 1 if 3 lines)
-        const institution = descriptionLines.length >= 2 
-          ? descriptionLines[descriptionLines.length - 2] 
-          : '';
         
         creditsRecords.push({
           mesec: month,
           godina: year,
-          duration: '1', // Default to '1' (can be adjusted)
+          duration: '1',
           quantity: quantity,
           institution: institution,
           tema: theme,
         });
-      } else if (descriptionLines.length === 1) {
-        // Internal qualifications (only 1 line: theme, no institution)
+        
+        console.log(`✅ Added to CREDITS with quantity: ${quantity}`);
+      } else if (decision === 'INTERNAL') {
+        // Internal qualifications (no institution)
         internalRecords.push({
           mesec_from: month,
           godina_from: year,
@@ -263,14 +251,13 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
           godina_to: '0',
           now_to: 'false',
           name: theme,
-          hours: '0', // Default, can be extracted if present
-          institution: '', // No institution for internal
+          hours: '0',
+          institution: '',
         });
-      } else {
-        // Other qualifications (2 lines: theme, institution, no credits)
-        const institution = descriptionLines[1] || '';
         
-        // Map type text to numeric ID (default to 0 if not found)
+        console.log(`✅ Added to INTERNAL`);
+      } else {
+        // Other qualifications (has institution, no credits)
         const typeId = mapQualificationType(type);
         
         otherRecords.push({
@@ -283,6 +270,8 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
           name: theme,
           institution: institution,
         });
+        
+        console.log(`✅ Added to OTHER with type: ${typeId}`);
       }
     });
     
