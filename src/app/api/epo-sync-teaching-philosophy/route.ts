@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     const payload = new URLSearchParams({
       portfolio: epoPortfolioId,
       users: epoUserId,
-      cmd: 'teachingphilosophy',
+      cmd: 'teachingmethods',
       token: EPO_API_CONFIG.TOKEN,
       teachingphilosophy: teachingphilosophy || '',
     });
