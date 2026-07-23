@@ -164,6 +164,128 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
     });
   }
 
+  // Map qualifications and trainings (Квалификации и обучения)
+  // This section distributes records to 3 subsections based on content:
+  // 1. Credits (credits) - if last line contains "квалификационен кредит" or "кредита"
+  // 2. Internal qualifications (internal-qualifications) - if no institution (3rd line missing)
+  // 3. Professional qualifications (professional-qualifications) - all others
+  const qualificationsSection = parsedData.sections.find(
+    s => s.title?.toLowerCase().includes('квалификации') && 
+         s.title?.toLowerCase().includes('обучения')
+  );
+
+  if (qualificationsSection && qualificationsSection.tables.length > 0) {
+    const table = qualificationsSection.tables[0];
+    
+    const creditsRecords: any[] = [];
+    const internalRecords: any[] = [];
+    const professionalRecords: any[] = [];
+    
+    table.rows.forEach(row => {
+      // Extract date from title (e.g., "12/07/2024 - Удостоверение")
+      const titleField = row['Заглавие'] || row['заглавие'] || '';
+      const descriptionField = row['Описание'] || row['описание'] || '';
+      
+      // Split description by lines
+      const descriptionLines = descriptionField
+        .split(/\n+/)
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+      
+      // Line 0: Theme/Name (with quotes removed)
+      const theme = descriptionLines[0]?.replace(/^[""]|[""]$/g, '').trim() || '';
+      // Line 1: Institution (might be missing for internal qualifications)
+      const institution = descriptionLines[1] || '';
+      // Last line: Check for credits
+      const lastLine = descriptionLines[descriptionLines.length - 1] || '';
+      
+      // Determine which subsection this record belongs to
+      const hasCredits = lastLine.toLowerCase().includes('квалификационен кредит') || 
+                         lastLine.toLowerCase().includes('кредита');
+      const hasInstitution = institution.length > 0 && 
+                             !institution.toLowerCase().includes('квалификационен кредит') &&
+                             !institution.toLowerCase().includes('кредита');
+      
+      // Extract date and type from title
+      const { month, year, type } = parseQualificationTitle(titleField);
+      
+      if (hasCredits) {
+        // Credits subsection
+        // Extract quantity (1 or 2 credits)
+        const quantityMatch = lastLine.match(/(\d+)\s*(?:квалификационен\s*кредит|кредита)/i);
+        const quantity = quantityMatch ? quantityMatch[1] : '1';
+        
+        creditsRecords.push({
+          mesec: month,
+          godina: year,
+          duration: '1', // Default to '1' (can be adjusted)
+          quantity: quantity,
+          institution: institution || '',
+          tema: theme,
+        });
+      } else if (!hasInstitution) {
+        // Internal qualifications (no institution on line 1)
+        internalRecords.push({
+          mesec_from: month,
+          godina_from: year,
+          mesec_to: '0',
+          godina_to: '0',
+          now_to: 'false',
+          name: theme,
+          hours: '0', // Default, can be extracted if present
+          institution: '', // No institution for internal
+        });
+      } else {
+        // Professional qualifications
+        professionalRecords.push({
+          mesec_from: month,
+          godina_from: year,
+          mesec_to: '0',
+          godina_to: '0',
+          now_to: 'false',
+          name: theme,
+          specialty: '', // Can be extracted if present
+          pks: '1', // Default PKS level
+          hours: '0', // Can be extracted if present
+          institution: institution,
+        });
+      }
+    });
+    
+    // Add credits records if any
+    if (creditsRecords.length > 0) {
+      records.push({
+        targetSubsection: 'credits',
+        targetLabel: 'Квалификационни кредити',
+        records: creditsRecords,
+        sourceTable: qualificationsSection.title || 'Квалификации и обучения',
+        confidence: 'high',
+      });
+    }
+    
+    // Add internal qualifications records if any
+    if (internalRecords.length > 0) {
+      records.push({
+        targetSubsection: 'internal-qualifications',
+        targetLabel: 'Вътрешни квалификации',
+        records: internalRecords,
+        sourceTable: qualificationsSection.title || 'Квалификации и обучения',
+        confidence: 'high',
+      });
+    }
+    
+    // Add professional qualifications records if any
+    if (professionalRecords.length > 0) {
+      records.push({
+        targetSubsection: 'professional-qualifications',
+        targetLabel: 'Професионални квалификации',
+        records: professionalRecords,
+        sourceTable: qualificationsSection.title || 'Квалификации и обучения',
+        confidence: 'high',
+      });
+    }
+  }
+
   return { fields, records };
 }
 
@@ -228,6 +350,33 @@ function parsePeriod(period: string): {
   }
 
   return { monthFrom, yearFrom, monthTo, yearTo, nowTo };
+}
+
+/**
+ * Parse qualification title to extract date and type
+ * Example: "12/07/2024 - Удостоверение" → { month: '7', year: '2024', type: 'Удостоверение' }
+ */
+function parseQualificationTitle(title: string): { month: string; year: string; type: string } {
+  let month = '0';
+  let year = '';
+  let type = '';
+  
+  if (!title) {
+    return { month, year, type };
+  }
+  
+  // Try to extract date (DD/MM/YYYY format)
+  const dateMatch = title.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (dateMatch) {
+    month = dateMatch[2]; // MM
+    year = dateMatch[3];  // YYYY
+    
+    // Extract type after the dash
+    const typePart = title.split('-').slice(1).join('-').trim();
+    type = typePart || '';
+  }
+  
+  return { month, year, type };
 }
 
 /**
