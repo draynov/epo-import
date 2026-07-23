@@ -201,9 +201,18 @@ export function mapToSection2(parsedData: ParsedHTMLData): Section2Mapping {
       // Check all lines for credits (not just last line, in case of formatting issues)
       const hasCreditsInDescription = descriptionLines.some(line => {
         const lowerLine = line.toLowerCase().trim();
+        // More flexible credit detection
         return lowerLine.includes('кредит') || 
-               lowerLine.includes('kredita') ||
-               lowerLine.match(/\d+\s*(?:квалификационен|кредит)/i);
+               lowerLine.includes('кредита') ||
+               lowerLine.match(/\d+\s*(?:квалификационн|кредит)/i);
+      });
+      
+      console.log('🔍 Processing qualification:', {
+        title: titleField.substring(0, 50),
+        theme: theme.substring(0, 50),
+        lineCount: descriptionLines.length,
+        lines: descriptionLines.map(l => l.substring(0, 60)),
+        hasCredits: hasCreditsInDescription
       });
       
       if (hasCreditsInDescription) {
