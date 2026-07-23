@@ -43,6 +43,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [isSyncingCredits, setIsSyncingCredits] = useState(false);
   const [isSyncingInternal, setIsSyncingInternal] = useState(false);
   const [isSyncingQualifications, setIsSyncingQualifications] = useState(false);
+  const [isSyncingLanguages, setIsSyncingLanguages] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [positionsSyncMessage, setPositionsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [educationSyncMessage, setEducationSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -51,6 +52,7 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [creditsSyncMessage, setCreditsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [internalSyncMessage, setInternalSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [qualificationsSyncMessage, setQualificationsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [languagesSyncMessage, setLanguagesSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Load portfolio and all subsection data
   useEffect(() => {
@@ -804,6 +806,86 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
       // Auto-hide message after 5 seconds
       setTimeout(() => {
         setQualificationsSyncMessage(null);
+      }, 5000);
+    }
+  };
+
+  // Sync languages to EPO API
+  const handleSyncLanguages = async () => {
+    if (!portfolio) return;
+    
+    console.log('🌐 CLIENT: Starting languages sync...');
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setLanguagesSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    // Get languages data
+    const languagesData = allSubsectionData['languages'] as { records?: Array<Record<string, unknown>> } || {};
+    const languages = languagesData.records || [];
+    
+    console.log('🌐 CLIENT: Languages data:', languages);
+    
+    if (languages.length === 0) {
+      setLanguagesSyncMessage({
+        type: 'error',
+        text: 'Няма данни за чужди езици. Моля, добавете поне един запис.'
+      });
+      return;
+    }
+    
+    setIsSyncingLanguages(true);
+    setLanguagesSyncMessage(null);
+    
+    try {
+      console.log('🌐 CLIENT: Calling /api/epo-sync-languages...');
+      
+      const response = await fetch('/api/epo-sync-languages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
+          records: languages,
+        }),
+      });
+      
+      console.log('🌐 CLIENT: Response status:', response.status);
+      
+      const data = await response.json();
+      
+      console.log('🌐 CLIENT: Response data:', data);
+      
+      if (data.success) {
+        setLanguagesSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! Синхронизирани ${data.successCount} от ${languages.length} записа.`
+        });
+      } else {
+        setLanguagesSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('🌐 CLIENT: Languages sync error:', error);
+      setLanguagesSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncingLanguages(false);
+      
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setLanguagesSyncMessage(null);
       }, 5000);
     }
   };
