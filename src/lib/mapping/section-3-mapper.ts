@@ -4,7 +4,24 @@
  */
 
 import { ParsedHTMLData } from '@/lib/parsers/html-parser';
-import { FieldMapping, RecordMapping } from './section-1-mapper';
+
+export interface FieldMapping {
+  targetField: string;
+  targetLabel: string;
+  sourceValue: string;
+  sourceLabel: string;
+  confidence: 'high' | 'medium' | 'low';
+  subsectionId: string;
+  subsectionTitle: string;
+}
+
+export interface RecordMapping {
+  targetSubsection: string;
+  targetLabel: string;
+  records: Record<string, string>[];
+  sourceTable: string;
+  confidence: 'high' | 'medium' | 'low';
+}
 
 export interface Section3Mapping {
   fields: FieldMapping[];
@@ -72,6 +89,7 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
       // "Математика - 5 клас"
       
       const lines = value.split(/[\n,]/).map(l => l.trim()).filter(l => l.length > 0);
+      const classRecords: Record<string, string>[] = [];
       
       for (const line of lines) {
         // Try to parse format: "Subject - Class"
@@ -79,44 +97,28 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
         
         if (match) {
           // Found format with subject and class
-          records.push({
-            subsectionId: 'classes',
-            subsectionTitle: 'Учебни предмети и класове',
-            sourceLabel: textField.label,
-            confidence: 'medium',
-            fields: [
-              {
-                targetField: 'name',
-                targetLabel: 'Наименование на предмета',
-                sourceValue: match[1].trim(),
-                confidence: 'medium',
-              },
-              {
-                targetField: 'class',
-                targetLabel: 'Класове',
-                sourceValue: match[2].trim(),
-                confidence: 'low',
-                note: 'Моля, проверете и коригирайте класа/класовете',
-              },
-            ],
+          classRecords.push({
+            name: match[1].trim(),
+            class: match[2].trim(),
+            _note: 'Моля, проверете и коригирайте класа/класовете',
           });
         } else {
           // Single value - add as subject name with unspecified class
-          records.push({
-            subsectionId: 'classes',
-            subsectionTitle: 'Учебни предмети и класове',
-            sourceLabel: textField.label,
-            confidence: 'low',
-            fields: [
-              {
-                targetField: 'name',
-                targetLabel: 'Наименование на предмета',
-                sourceValue: line,
-                confidence: 'medium',
-              },
-            ],
+          classRecords.push({
+            name: line,
+            _note: 'Моля, изберете клас/класове',
           });
         }
+      }
+      
+      if (classRecords.length > 0) {
+        records.push({
+          targetSubsection: 'classes',
+          targetLabel: 'Учебни предмети и класове',
+          records: classRecords,
+          sourceTable: textField.label,
+          confidence: 'medium',
+        });
       }
       
       foundClasses = true;
@@ -134,6 +136,7 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
       // "Яслена група - Звездички"
       
       const lines = value.split(/[\n,]/).map(l => l.trim()).filter(l => l.length > 0);
+      const groupRecords: Record<string, string>[] = [];
       
       for (const line of lines) {
         // Try to parse format: "Group Type - Group Name"
@@ -141,26 +144,28 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
         
         if (match) {
           // Found format with group type and name
-          records.push({
-            subsectionId: 'groups',
-            subsectionTitle: 'Групи',
-            sourceLabel: textField.label,
-            confidence: 'medium',
-            fields: [
-              {
-                targetField: 'group',
-                targetLabel: 'Групи',
-                sourceValue: match[1].trim(),
-                confidence: 'low',
-                note: 'Моля, изберете правилния тип група',
-              },
-              {
-                targetField: 'name',
-                targetLabel: 'Име на групата',
-                sourceValue: match[2].trim(),
-                confidence: 'high',
-              },
-            ],
+          const groupType = match[1].trim();
+          const groupName = match[2].trim();
+          
+          // Try to detect group type value
+          let groupValue = '';
+          const typeLower = groupType.toLowerCase();
+          if (typeLower.includes('предучилищна') || typeLower.includes('подготвителна')) {
+            groupValue = '4'; // Предучилищна възраст (5-6/7 год.)
+          } else if (typeLower.includes('втора млад')) {
+            groupValue = '2'; // Втора младша (2-3 год.)
+          } else if (typeLower.includes('първа млад')) {
+            groupValue = '1'; // Първа младша (1-2 год.)
+          } else if (typeLower.includes('средна')) {
+            groupValue = '3'; // Средна възраст (3-4 год.)
+          } else if (typeLower.includes('ясл')) {
+            groupValue = '0'; // Яслена (0-1 год.)
+          }
+          
+          groupRecords.push({
+            ...(groupValue ? { group: groupValue } : {}),
+            name: groupName,
+            _note: groupValue ? undefined : 'Моля, изберете правилния тип група',
           });
         } else {
           // Single value - treat as group type or name
@@ -181,27 +186,22 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
             groupValue = '0'; // Яслена (0-1 год.)
           }
           
-          records.push({
-            subsectionId: 'groups',
-            subsectionTitle: 'Групи',
-            sourceLabel: textField.label,
-            confidence: groupValue ? 'medium' : 'low',
-            fields: [
-              ...(groupValue ? [{
-                targetField: 'group',
-                targetLabel: 'Групи',
-                sourceValue: groupValue,
-                confidence: 'medium' as const,
-              }] : []),
-              {
-                targetField: 'name',
-                targetLabel: 'Име на групата',
-                sourceValue: nameValue,
-                confidence: 'high',
-              },
-            ],
+          groupRecords.push({
+            ...(groupValue ? { group: groupValue } : {}),
+            name: nameValue,
+            _note: groupValue ? undefined : 'Моля, добавете тип и име на групата',
           });
         }
+      }
+      
+      if (groupRecords.length > 0) {
+        records.push({
+          targetSubsection: 'groups',
+          targetLabel: 'Групи',
+          records: groupRecords,
+          sourceTable: textField.label,
+          confidence: 'medium',
+        });
       }
       
       foundGroups = true;
