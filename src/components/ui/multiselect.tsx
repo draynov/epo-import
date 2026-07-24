@@ -95,9 +95,6 @@ export function MultiSelect({
                   />
                   <div className="flex-1">
                     <div className="text-sm text-gray-900">{option.label}</div>
-                    {option.description && (
-                      <div className="text-xs text-gray-500 mt-0.5">{option.description}</div>
-                    )}
                   </div>
                 </label>
               );
