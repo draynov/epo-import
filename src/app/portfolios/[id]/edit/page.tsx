@@ -65,6 +65,10 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [groupsSyncMessage, setGroupsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isSyncingPractices, setIsSyncingPractices] = useState(false);
   const [practicesSyncMessage, setPracticesSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isSyncingPersonals, setIsSyncingPersonals] = useState(false);
+  const [personalsSyncMessage, setPersonalsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isSyncingStudents, setIsSyncingStudents] = useState(false);
+  const [studentsSyncMessage, setStudentsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Load portfolio and all subsection data
   useEffect(() => {
@@ -1222,6 +1226,168 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     }
   };
 
+  // Sync personal achievements to EPO API
+  const handleSyncPersonals = async () => {
+    if (!portfolio) return;
+    
+    console.log('🏆 CLIENT: Starting personal achievements sync...');
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setPersonalsSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    // Get personal achievements data
+    const personalsData = allSubsectionData['personal-achievements'] as { records?: Array<Record<string, unknown>> } || {};
+    const personals = personalsData.records || [];
+    
+    console.log('🏆 CLIENT: Personal achievements data:', personals);
+    
+    if (personals.length === 0) {
+      setPersonalsSyncMessage({
+        type: 'error',
+        text: 'Няма данни за лични постижения. Моля, добавете поне един запис.'
+      });
+      return;
+    }
+    
+    setIsSyncingPersonals(true);
+    setPersonalsSyncMessage(null);
+    
+    try {
+      console.log('🏆 CLIENT: Calling /api/epo-sync-personals...');
+      
+      const response = await fetch('/api/epo-sync-personals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: portfolio.epoUserId,
+          portfolio: portfolio.epoPortfolioId,
+          users: portfolio.epoUserId,
+          personals: personals,
+        }),
+      });
+      
+      console.log('🏆 CLIENT: Response status:', response.status);
+      
+      const data = await response.json();
+      
+      console.log('🏆 CLIENT: Response data:', data);
+      
+      if (data.success) {
+        setPersonalsSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! ${data.message}`
+        });
+      } else {
+        setPersonalsSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('🏆 CLIENT: Personal achievements sync error:', error);
+      setPersonalsSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncingPersonals(false);
+      
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setPersonalsSyncMessage(null);
+      }, 5000);
+    }
+  };
+
+  // Sync student achievements to EPO API
+  const handleSyncStudents = async () => {
+    if (!portfolio) return;
+    
+    console.log('🎓 CLIENT: Starting student achievements sync...');
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setStudentsSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    // Get student achievements data
+    const studentsData = allSubsectionData['student-achievements'] as { records?: Array<Record<string, unknown>> } || {};
+    const students = studentsData.records || [];
+    
+    console.log('🎓 CLIENT: Student achievements data:', students);
+    
+    if (students.length === 0) {
+      setStudentsSyncMessage({
+        type: 'error',
+        text: 'Няма данни за постижения на ученици. Моля, добавете поне един запис.'
+      });
+      return;
+    }
+    
+    setIsSyncingStudents(true);
+    setStudentsSyncMessage(null);
+    
+    try {
+      console.log('🎓 CLIENT: Calling /api/epo-sync-students...');
+      
+      const response = await fetch('/api/epo-sync-students', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          token: portfolio.epoUserId,
+          portfolio: portfolio.epoPortfolioId,
+          users: portfolio.epoUserId,
+          students: students,
+        }),
+      });
+      
+      console.log('🎓 CLIENT: Response status:', response.status);
+      
+      const data = await response.json();
+      
+      console.log('🎓 CLIENT: Response data:', data);
+      
+      if (data.success) {
+        setStudentsSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! ${data.message}`
+        });
+      } else {
+        setStudentsSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('🎓 CLIENT: Student achievements sync error:', error);
+      setStudentsSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncingStudents(false);
+      
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setStudentsSyncMessage(null);
+      }, 5000);
+    }
+  };
+
   // Sync classes to EPO API
   const handleSyncClasses = async () => {
     if (!portfolio) return;
@@ -1594,7 +1760,10 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   );
                   
                   // Sections with working modals
-                  const hasModal = section.sectionId === "section-1" || section.sectionId === "section-2" || section.sectionId === "section-3";
+                  const hasModal = section.sectionId === "section-1" || 
+                                    section.sectionId === "section-2" || 
+                                    section.sectionId === "section-3" || 
+                                    section.sectionId === "section-4";
 
                   return (
                     <div
@@ -2414,6 +2583,110 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             )}
                           </Button>
                         )}
+                        {subsection.subsectionId === "personal-achievements" && (
+                          <Button
+                            size="sm"
+                            onClick={handleSyncPersonals}
+                            disabled={isSyncingPersonals || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSyncingPersonals ? (
+                              <>
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-1"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Синхронизиране...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                                Синхронизирай
+                              </>
+                            )}
+                          </Button>
+                        )}
+                        {subsection.subsectionId === "student-achievements" && (
+                          <Button
+                            size="sm"
+                            onClick={handleSyncStudents}
+                            disabled={isSyncingStudents || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSyncingStudents ? (
+                              <>
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-1"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Синхронизиране...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                                Синхронизирай
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     )}
                     {!hasModal && (
@@ -3090,6 +3363,102 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           practicesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
                         }`}>
                           {practicesSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Personal Achievements Sync Status Message */}
+                  {subsection.subsectionId === "personal-achievements" && personalsSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      personalsSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {personalsSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          personalsSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {personalsSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Student Achievements Sync Status Message */}
+                  {subsection.subsectionId === "student-achievements" && studentsSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      studentsSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {studentsSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          studentsSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {studentsSyncMessage.text}
                         </p>
                       </div>
                     </div>
