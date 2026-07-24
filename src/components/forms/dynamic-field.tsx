@@ -6,7 +6,7 @@
 "use client";
 
 import { PortfolioFieldDefinition } from "@/types";
-import { Input, Textarea, Select } from "@/components/ui";
+import { Input, Textarea, Select, MultiSelect } from "@/components/ui";
 import { MONTHS, YEARS } from "@/config/date-options";
 
 export interface DynamicFieldProps {
@@ -148,13 +148,22 @@ export function DynamicField({ field, value, onChange, error, disabled }: Dynami
       );
 
     case "multiselect":
-      // TODO: Implement multiselect
+      if (!field.options) return null;
+      
+      // Ensure value is an array
+      const multiValue = Array.isArray(value) ? value : [];
+      
       return (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {field.label} (multiselect - coming soon)
-          </label>
-        </div>
+        <MultiSelect
+          label={field.label}
+          value={multiValue}
+          onChange={(newValue) => onChange(newValue)}
+          options={field.options}
+          required={field.required}
+          error={error}
+          description={field.description}
+          disabled={disabled}
+        />
       );
 
     default:
