@@ -59,24 +59,26 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Handle years (multiple academic years)
-        if (record.years) {
-          if (Array.isArray(record.years)) {
-            // Convert array to comma-separated string
-            payload.years = record.years.join(',');
-          } else {
-            // Already a string, just pass it through
-            payload.years = String(record.years);
-          }
-        }
-
         console.log('🎓 Payload:', payload);
+        console.log('🎓 Years array:', record.years);
 
         // Send to EPO API
         const formData = new URLSearchParams();
         Object.entries(payload).forEach(([key, value]) => {
           formData.append(key, String(value));
         });
+
+        // Append years as array with years[multiple] format
+        if (record.years) {
+          if (Array.isArray(record.years)) {
+            record.years.forEach((year: string) => {
+              formData.append('years[multiple]', year);
+            });
+          } else {
+            // Single year as string
+            formData.append('years[multiple]', String(record.years));
+          }
+        }
 
         const response = await fetch(EPO_API_CONFIG.BASE_URL, {
           method: 'POST',
