@@ -2206,14 +2206,14 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             )}
                           </Button>
                         )}
-                        {subsection.subsectionId === "groups" && (
+                        {subsection.subsectionId === "classes" && (
                           <Button
                             size="sm"
-                            onClick={handleSyncGroups}
-                            disabled={isSyncingGroups || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            onClick={handleSyncClasses}
+                            disabled={isSyncingClasses || !portfolio.epoPortfolioId || !portfolio.epoUserId}
                             className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {isSyncingGroups ? (
+                            {isSyncingClasses ? (
                               <>
                                 <svg
                                   className="animate-spin h-4 w-4 mr-1"
@@ -2258,14 +2258,14 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             )}
                           </Button>
                         )}
-                        {subsection.subsectionId === "classes" && (
+                        {subsection.subsectionId === "groups" && (
                           <Button
                             size="sm"
-                            onClick={handleSyncClasses}
-                            disabled={isSyncingClasses || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            onClick={handleSyncGroups}
+                            disabled={isSyncingGroups || !portfolio.epoPortfolioId || !portfolio.epoUserId}
                             className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            {isSyncingClasses ? (
+                            {isSyncingGroups ? (
                               <>
                                 <svg
                                   className="animate-spin h-4 w-4 mr-1"
@@ -2362,6 +2362,58 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             )}
                           </Button>
                         )}
+                        {subsection.subsectionId === "best-practices" && (
+                          <Button
+                            size="sm"
+                            onClick={handleSyncPractices}
+                            disabled={isSyncingPractices || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSyncingPractices ? (
+                              <>
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-1"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Синхронизиране...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                                Синхронизирай
+                              </>
+                            )}
+                          </Button>
+                        )}
                       </div>
                     )}
                     {!hasModal && (
@@ -2370,102 +2422,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       </Button>
                     )}
                   </div>
-                  
-                  {/* Groups Sync Status Message */}
-                  {subsection.subsectionId === "groups" && groupsSyncMessage && (
-                    <div className={`mt-3 p-3 rounded-md ${
-                      groupsSyncMessage.type === 'success' 
-                        ? 'bg-purple-50 border border-purple-200' 
-                        : 'bg-red-50 border border-red-200'
-                    }`}>
-                      <div className="flex items-center">
-                        {groupsSyncMessage.type === 'success' ? (
-                          <svg
-                            className="h-4 w-4 text-purple-600 mr-2"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="h-4 w-4 text-red-600 mr-2"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        )}
-                        <p className={`text-sm font-medium ${
-                          groupsSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
-                        }`}>
-                          {groupsSyncMessage.text}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Classes Sync Status Message */}
-                  {subsection.subsectionId === "classes" && classesSyncMessage && (
-                    <div className={`mt-3 p-3 rounded-md ${
-                      classesSyncMessage.type === 'success' 
-                        ? 'bg-purple-50 border border-purple-200' 
-                        : 'bg-red-50 border border-red-200'
-                    }`}>
-                      <div className="flex items-center">
-                        {classesSyncMessage.type === 'success' ? (
-                          <svg
-                            className="h-4 w-4 text-purple-600 mr-2"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M5 13l4 4L19 7"
-                            />
-                          </svg>
-                        ) : (
-                          <svg
-                            className="h-4 w-4 text-red-600 mr-2"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M6 18L18 6M6 6l12 12"
-                            />
-                          </svg>
-                        )}
-                        <p className={`text-sm font-medium ${
-                          classesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
-                        }`}>
-                          {classesSyncMessage.text}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                   
                   {/* Positions Sync Status Message */}
                   {subsection.subsectionId === "position-history" && positionsSyncMessage && (
@@ -2995,6 +2951,150 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                     </div>
                   )}
                   
+                  {/* Classes Sync Status Message */}
+                  {subsection.subsectionId === "classes" && classesSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      classesSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {classesSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          classesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {classesSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Groups Sync Status Message */}
+                  {subsection.subsectionId === "groups" && groupsSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      groupsSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {groupsSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          groupsSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {groupsSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Best Practices Sync Status Message */}
+                  {subsection.subsectionId === "best-practices" && practicesSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      practicesSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {practicesSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          practicesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {practicesSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Data Visualization */}
                   {hasData && subsection.type === "direct_fields" && (
                     <div className="mt-4 pt-4 border-t border-gray-200 bg-gray-50 -mx-4 -mb-4 px-4 pb-4 rounded-b-md">
@@ -3056,310 +3156,6 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                           }));
                         }}
                       />
-                      
-                      {/* Sync Buttons for record_list subsections */}
-                      <div className="mt-4 flex gap-2">
-                        {subsection.subsectionId === "classes" && (
-                          <Button
-                            size="sm"
-                            onClick={handleSyncClasses}
-                            disabled={isSyncingClasses || !portfolio.epoPortfolioId || !portfolio.epoUserId}
-                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isSyncingClasses ? (
-                              <>
-                                <svg
-                                  className="animate-spin h-4 w-4 mr-1"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                                Синхронизиране...
-                              </>
-                            ) : (
-                              <>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4 mr-1"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                </svg>
-                                Синхронизирай
-                              </>
-                            )}
-                          </Button>
-                        )}
-                        
-                        {subsection.subsectionId === "groups" && (
-                          <Button
-                            size="sm"
-                            onClick={handleSyncGroups}
-                            disabled={isSyncingGroups || !portfolio.epoPortfolioId || !portfolio.epoUserId}
-                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isSyncingGroups ? (
-                              <>
-                                <svg
-                                  className="animate-spin h-4 w-4 mr-1"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                                Синхронизиране...
-                              </>
-                            ) : (
-                              <>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4 mr-1"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                </svg>
-                                Синхронизирай
-                              </>
-                            )}
-                          </Button>
-                        )}
-                        
-                        {subsection.subsectionId === "best-practices" && (
-                          <Button
-                            size="sm"
-                            onClick={handleSyncPractices}
-                            disabled={isSyncingPractices || !portfolio.epoPortfolioId || !portfolio.epoUserId}
-                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {isSyncingPractices ? (
-                              <>
-                                <svg
-                                  className="animate-spin h-4 w-4 mr-1"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                  ></circle>
-                                  <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                  ></path>
-                                </svg>
-                                Синхронизиране...
-                              </>
-                            ) : (
-                              <>
-                                <svg
-                                  xmlns="http://www.w3.org/2000/svg"
-                                  className="h-4 w-4 mr-1"
-                                  fill="none"
-                                  viewBox="0 0 24 24"
-                                  stroke="currentColor"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                                  />
-                                </svg>
-                                Синхронизирай
-                              </>
-                            )}
-                          </Button>
-                        )}
-                      </div>
-                      
-                      {/* Status Messages for record_list */}
-                      {subsection.subsectionId === "classes" && classesSyncMessage && (
-                        <div className={`mt-3 p-3 rounded-md ${
-                          classesSyncMessage.type === 'success' 
-                            ? 'bg-purple-50 border border-purple-200' 
-                            : 'bg-red-50 border border-red-200'
-                        }`}>
-                          <div className="flex items-center">
-                            {classesSyncMessage.type === 'success' ? (
-                              <svg
-                                className="h-4 w-4 text-purple-600 mr-2"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                className="h-4 w-4 text-red-600 mr-2"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            )}
-                            <p className={`text-sm font-medium ${
-                              classesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
-                            }`}>
-                              {classesSyncMessage.text}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {subsection.subsectionId === "groups" && groupsSyncMessage && (
-                        <div className={`mt-3 p-3 rounded-md ${
-                          groupsSyncMessage.type === 'success' 
-                            ? 'bg-purple-50 border border-purple-200' 
-                            : 'bg-red-50 border border-red-200'
-                        }`}>
-                          <div className="flex items-center">
-                            {groupsSyncMessage.type === 'success' ? (
-                              <svg
-                                className="h-4 w-4 text-purple-600 mr-2"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                className="h-4 w-4 text-red-600 mr-2"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            )}
-                            <p className={`text-sm font-medium ${
-                              groupsSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
-                            }`}>
-                              {groupsSyncMessage.text}
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {subsection.subsectionId === "best-practices" && practicesSyncMessage && (
-                        <div className={`mt-3 p-3 rounded-md ${
-                          practicesSyncMessage.type === 'success' 
-                            ? 'bg-purple-50 border border-purple-200' 
-                            : 'bg-red-50 border border-red-200'
-                        }`}>
-                          <div className="flex items-center">
-                            {practicesSyncMessage.type === 'success' ? (
-                              <svg
-                                className="h-4 w-4 text-purple-600 mr-2"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M5 13l4 4L19 7"
-                                />
-                              </svg>
-                            ) : (
-                              <svg
-                                className="h-4 w-4 text-red-600 mr-2"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M6 18L18 6M6 6l12 12"
-                                />
-                              </svg>
-                            )}
-                            <p className={`text-sm font-medium ${
-                              practicesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
-                            }`}>
-                              {practicesSyncMessage.text}
-                            </p>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
