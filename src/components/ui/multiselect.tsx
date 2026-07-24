@@ -76,7 +76,8 @@ export function MultiSelect({
         ) : (
           <div className="space-y-2">
             {flatOptions.map((option) => {
-              const isChecked = currentValues.includes(option.value);
+              const optionValue = String(option.value);
+              const isChecked = currentValues.includes(optionValue);
               
               return (
                 <label
@@ -88,7 +89,7 @@ export function MultiSelect({
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() => handleToggle(option.value)}
+                    onChange={() => handleToggle(optionValue)}
                     disabled={disabled}
                     className="mt-0.5 w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
