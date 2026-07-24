@@ -1267,9 +1267,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          token: portfolio.epoUserId,
-          portfolio: portfolio.epoPortfolioId,
-          users: portfolio.epoUserId,
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
           personals: personals,
         }),
       });
@@ -1348,9 +1347,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          token: portfolio.epoUserId,
-          portfolio: portfolio.epoPortfolioId,
-          users: portfolio.epoUserId,
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
           students: students,
         }),
       });
