@@ -162,11 +162,17 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
             groupValue = '0'; // Яслена (0-1 год.)
           }
           
-          groupRecords.push({
-            ...(groupValue ? { group: groupValue } : {}),
+          const record: Record<string, string> = {
             name: groupName,
-            _note: groupValue ? undefined : 'Моля, изберете правилния тип група',
-          });
+          };
+          
+          if (groupValue) {
+            record.group = groupValue;
+          } else {
+            record._note = 'Моля, изберете правилния тип група';
+          }
+          
+          groupRecords.push(record);
         } else {
           // Single value - treat as group type or name
           let groupValue = '';
@@ -186,11 +192,17 @@ export function mapToSection3(parsedData: ParsedHTMLData): Section3Mapping {
             groupValue = '0'; // Яслена (0-1 год.)
           }
           
-          groupRecords.push({
-            ...(groupValue ? { group: groupValue } : {}),
+          const record: Record<string, string> = {
             name: nameValue,
-            _note: groupValue ? undefined : 'Моля, добавете тип и име на групата',
-          });
+          };
+          
+          if (groupValue) {
+            record.group = groupValue;
+          } else {
+            record._note = 'Моля, добавете тип и име на групата';
+          }
+          
+          groupRecords.push(record);
         }
       }
       
