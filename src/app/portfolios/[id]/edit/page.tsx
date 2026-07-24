@@ -73,6 +73,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [resultsSyncMessage, setResultsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isSyncingAuthorship, setIsSyncingAuthorship] = useState(false);
   const [authorshipSyncMessage, setAuthorshipSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isSyncingPrograms, setIsSyncingPrograms] = useState(false);
+  const [programsSyncMessage, setProgramsSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Load portfolio and all subsection data
   useEffect(() => {
@@ -1550,6 +1552,86 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     }
   };
 
+  // Sync programs to EPO API
+  const handleSyncPrograms = async () => {
+    if (!portfolio) return;
+    
+    console.log('📋 CLIENT: Starting programs sync...');
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setProgramsSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    // Get programs data
+    const programsData = allSubsectionData['programs'] as { records?: Array<Record<string, unknown>> } || {};
+    const programs = programsData.records || [];
+    
+    console.log('📋 CLIENT: Programs data:', programs);
+    
+    if (programs.length === 0) {
+      setProgramsSyncMessage({
+        type: 'error',
+        text: 'Няма данни за участие в програми. Моля, добавете поне един запис.'
+      });
+      return;
+    }
+    
+    setIsSyncingPrograms(true);
+    setProgramsSyncMessage(null);
+    
+    try {
+      console.log('📋 CLIENT: Calling /api/epo-sync-programs...');
+      
+      const response = await fetch('/api/epo-sync-programs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
+          programs: programs,
+        }),
+      });
+      
+      console.log('📋 CLIENT: Response status:', response.status);
+      
+      const data = await response.json();
+      
+      console.log('📋 CLIENT: Response data:', data);
+      
+      if (data.success) {
+        setProgramsSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! ${data.message}`
+        });
+      } else {
+        setProgramsSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('📋 CLIENT: Programs sync error:', error);
+      setProgramsSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncingPrograms(false);
+      
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setProgramsSyncMessage(null);
+      }, 5000);
+    }
+  };
+
   // Sync classes to EPO API
   const handleSyncClasses = async () => {
     if (!portfolio) return;
@@ -1925,7 +2007,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                   const hasModal = section.sectionId === "section-1" || 
                                     section.sectionId === "section-2" || 
                                     section.sectionId === "section-3" || 
-                                    section.sectionId === "section-4";
+                                    section.sectionId === "section-4" || 
+                                    section.sectionId === "section-5";
 
                   return (
                     <div

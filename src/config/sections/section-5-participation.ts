@@ -34,6 +34,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
@@ -48,6 +49,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           label: "До сега",
           type: "checkbox",
           required: false,
+          showInTable: false,
         },
         {
           key: "mesec_to",
@@ -56,6 +58,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_to",
@@ -117,6 +120,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
@@ -131,6 +135,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           label: "До сега",
           type: "checkbox",
           required: false,
+          showInTable: false,
         },
         {
           key: "mesec_to",
@@ -139,6 +144,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_to",
@@ -200,6 +206,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
@@ -214,6 +221,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           label: "До сега",
           type: "checkbox",
           required: false,
+          showInTable: false,
         },
         {
           key: "mesec_to",
@@ -222,6 +230,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_to",
@@ -320,6 +329,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_from",
@@ -334,6 +344,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           label: "До сега",
           type: "checkbox",
           required: false,
+          showInTable: false,
         },
         {
           key: "mesec_to",
@@ -342,6 +353,7 @@ export const SECTION_5_PARTICIPATION: PortfolioSectionDefinition = {
           required: false,
           min: 1,
           max: 12,
+          showInTable: false,
         },
         {
           key: "godina_to",
