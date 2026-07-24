@@ -47,17 +47,8 @@ export async function POST(request: NextRequest) {
           name: String(record.name),
         };
 
-        // Handle years (multiselect array → comma-separated string)
-        if (record.years) {
-          if (Array.isArray(record.years)) {
-            // Convert array to comma-separated string
-            payload.years = record.years.join(',');
-          } else {
-            // Already a string, just pass it through
-            payload.years = String(record.years);
-          }
-        } else {
-          // Years is required, return error if missing
+        // Validate years (required)
+        if (!record.years || (Array.isArray(record.years) && record.years.length === 0)) {
           syncResults.push({
             success: false,
             error: `"${record.name}" - липсват учебни години`,
@@ -71,12 +62,23 @@ export async function POST(request: NextRequest) {
         }
 
         console.log('📊 Payload:', payload);
+        console.log('📊 Years array:', record.years);
 
         // Send to EPO API
         const formData = new URLSearchParams();
         Object.entries(payload).forEach(([key, value]) => {
           formData.append(key, String(value));
         });
+
+        // Append years as array with years[multiple] format
+        if (Array.isArray(record.years)) {
+          record.years.forEach((year: string) => {
+            formData.append('years[multiple]', year);
+          });
+        } else {
+          // Single year as string
+          formData.append('years[multiple]', String(record.years));
+        }
 
         const response = await fetch(EPO_API_CONFIG.BASE_URL, {
           method: 'POST',
