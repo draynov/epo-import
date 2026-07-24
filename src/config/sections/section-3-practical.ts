@@ -36,7 +36,7 @@ export const SECTION_3_PRACTICAL: PortfolioSectionDefinition = {
         },
         {
           key: "class",
-          label: "Клас",
+          label: "Класове",
           type: "select",
           required: true,
           options: OPTIONS.CLASS_LEVELS,
@@ -82,7 +82,7 @@ export const SECTION_3_PRACTICAL: PortfolioSectionDefinition = {
       fields: [
         {
           key: "group",
-          label: "Група",
+          label: "Групи",
           type: "select",
           required: true,
           options: OPTIONS.GROUP_TYPES,

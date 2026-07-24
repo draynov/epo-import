@@ -10,7 +10,7 @@ import { RecordListSubsectionDefinition } from "@/types";
 import { Button } from "@/components/ui";
 import { RecordModal } from "./record-modal";
 import { MONTHS } from "@/config/date-options";
-import { getCompetenceGroup } from "@/config/field-options";
+import { getCompetenceGroup, CLASS_LEVELS, GROUP_TYPES } from "@/config/field-options";
 
 export interface RecordListViewProps {
   subsection: RecordListSubsectionDefinition;
@@ -106,11 +106,66 @@ export function RecordListView({
   // Determine which fields to display in table
   const getDisplayFields = () => {
     // Filter fields based on showInTable property (default true)
-    return subsection.fields.filter(f => f.showInTable !== false);
+    // Also hide multiclass and multigroup (shown in class/group column instead)
+    return subsection.fields.filter(f => 
+      f.showInTable !== false && 
+      f.key !== 'multiclass' && 
+      f.key !== 'multigroup'
+    );
   };
 
   // Format cell value based on field type and record data
   const formatCellValue = (field: any, record: Record<string, unknown>) => {
+    // Special handling for class field - show class or multiple classes
+    if (field.key === 'class') {
+      const classValue = record.class;
+      
+      // Check if "Повече от един клас" (value: 20)
+      if (String(classValue) === '20') {
+        const multiclass = record.multiclass;
+        if (Array.isArray(multiclass) && multiclass.length > 0) {
+          // Show list of selected classes
+          const classNames = multiclass
+            .map(val => {
+              const option = CLASS_LEVELS.find(opt => String(opt.value) === String(val));
+              return option ? option.label : String(val);
+            })
+            .join(', ');
+          return classNames || '-';
+        }
+        return 'Повече от един клас';
+      }
+      
+      // Single class - find label
+      const option = CLASS_LEVELS.find(opt => String(opt.value) === String(classValue));
+      return option ? option.label : (classValue ? String(classValue) : '-');
+    }
+    
+    // Special handling for group field - show group or multiple groups
+    if (field.key === 'group') {
+      const groupValue = record.group;
+      
+      // Check if "Повече от една група" (value: 6)
+      if (String(groupValue) === '6') {
+        const multigroup = record.multigroup;
+        if (Array.isArray(multigroup) && multigroup.length > 0) {
+          // Show list of selected groups
+          const groupNames = multigroup
+            .map(val => {
+              const option = GROUP_TYPES.find(opt => String(opt.value) === String(val));
+              return option ? option.label : String(val);
+            })
+            .join(', ');
+          return groupNames || '-';
+        }
+        return 'Повече от една група';
+      }
+      
+      // Single group - find label
+      const option = GROUP_TYPES.find(opt => String(opt.value) === String(groupValue));
+      return option ? option.label : (groupValue ? String(groupValue) : '-');
+    }
+    
     // Special handling for godina_to when now_to is checked
     if (field.key === 'godina_to') {
       const nowTo = record.now_to;
@@ -199,6 +254,13 @@ export function RecordListView({
       if (option) {
         return option.label;
       }
+    }
+    
+    // Handle multiselect fields (e.g., years)
+    if (field.type === 'multiselect' && Array.isArray(value)) {
+      if (value.length === 0) return '-';
+      // For years and similar fields, just join the values
+      return value.join(', ');
     }
 
     return String(value);
