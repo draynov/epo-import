@@ -9,9 +9,14 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Sync Endpoint Pattern
 - Send records **one-by-one in a loop**, NOT as JSON array with `data` field
-- Each request: `token`, `portfolio`, `users`, `cmd`, + record fields
+- Each request includes:
+  * `token` - Hardcoded EPO_API_CONFIG.TOKEN (same for all users)
+  * `portfolio` - User's EPO portfolio ID (from settings)
+  * `users` - User's EPO user ID (from settings)
+  * `cmd` - Subsection type ('programs', 'projects', etc.)
+  * Record fields (depends on subsection)
 - Use `URLSearchParams` for form encoding
-- NO `Authorization` header - token goes in body
+- NO `Authorization` header - token goes in body as `token` field!
 - Check response: `'Message' in data` (success) or `'Error' in data` (failure)
 
 ## UI Icons
