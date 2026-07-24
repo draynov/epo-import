@@ -63,6 +63,7 @@ export async function POST(request: NextRequest) {
 
         console.log('📊 Payload:', payload);
         console.log('📊 Years array:', record.years);
+        console.log('📊 Years count:', Array.isArray(record.years) ? record.years.length : 1);
 
         // Send to EPO API
         const formData = new URLSearchParams();
@@ -72,13 +73,18 @@ export async function POST(request: NextRequest) {
 
         // Append years as array with years[multiple] format
         if (Array.isArray(record.years)) {
-          record.years.forEach((year: string) => {
+          console.log('📊 Adding years one by one:');
+          record.years.forEach((year: string, index: number) => {
+            console.log(`  [${index}] ${year}`);
             formData.append('years[multiple]', year);
           });
         } else {
           // Single year as string
           formData.append('years[multiple]', String(record.years));
         }
+
+        console.log('📊 FormData toString:', formData.toString());
+        console.log('📊 FormData getAll years[multiple]:', formData.getAll('years[multiple]'));
 
         const response = await fetch(EPO_API_CONFIG.BASE_URL, {
           method: 'POST',
