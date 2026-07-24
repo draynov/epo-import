@@ -71,20 +71,20 @@ export async function POST(request: NextRequest) {
           formData.append(key, String(value));
         });
 
-        // Append years as array with years[multiple] format
+        // Append years as array with years[] format (matches HTML: <select name="years[]">
         if (Array.isArray(record.years)) {
           console.log('📊 Adding years one by one:');
           record.years.forEach((year: string, index: number) => {
             console.log(`  [${index}] ${year}`);
-            formData.append('years[multiple]', year);
+            formData.append('years[]', year);
           });
         } else {
           // Single year as string
-          formData.append('years[multiple]', String(record.years));
+          formData.append('years[]', String(record.years));
         }
 
         console.log('📊 FormData toString:', formData.toString());
-        console.log('📊 FormData getAll years[multiple]:', formData.getAll('years[multiple]'));
+        console.log('📊 FormData getAll years[]:', formData.getAll('years[]'));
 
         const response = await fetch(EPO_API_CONFIG.BASE_URL, {
           method: 'POST',

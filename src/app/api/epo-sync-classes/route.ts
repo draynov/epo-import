@@ -68,15 +68,15 @@ export async function POST(request: NextRequest) {
           formData.append(key, String(value));
         });
 
-        // Append years as array with years[multiple] format
+        // Append years as array with years[] format (matches HTML: <select name="years[]">
         if (record.years) {
           if (Array.isArray(record.years)) {
             record.years.forEach((year: string) => {
-              formData.append('years[multiple]', year);
+              formData.append('years[]', year);
             });
           } else {
             // Single year as string
-            formData.append('years[multiple]', String(record.years));
+            formData.append('years[]', String(record.years));
           }
         }
 
