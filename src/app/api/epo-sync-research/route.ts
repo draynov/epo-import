@@ -75,29 +75,30 @@ export async function POST(request: NextRequest) {
 
     console.log('🔬 API: EPO response status:', response.status);
 
-    const responseText = await response.text();
-    console.log('🔬 API: EPO response body:', responseText);
-
-    let result: EpoApiResponse;
-    try {
-      result = JSON.parse(responseText);
-    } catch (e) {
-      console.error('🔬 API: Failed to parse response:', e);
+    if (!response.ok) {
       return NextResponse.json(
-        { success: false, error: 'Невалиден отговор от EPO API' },
-        { status: 500 }
+        { success: false, error: `HTTP error: ${response.status} ${response.statusText}` },
+        { status: response.status }
       );
     }
 
-    if (result.status === 'success') {
+    const data = await response.json() as EpoApiResponse;
+    console.log('🔬 API: EPO response data:', data);
+
+    if ('Message' in data) {
       return NextResponse.json({
         success: true,
-        message: result.message || 'Научно-изследователската дейност е синхронизирана успешно',
+        message: data.Message,
+      });
+    } else if ('Error' in data) {
+      return NextResponse.json({
+        success: false,
+        error: data.Error,
       });
     } else {
       return NextResponse.json({
         success: false,
-        error: result.error || 'Неуспешна синхронизация',
+        error: 'Невалиден формат на отговора',
       });
     }
   } catch (error) {
