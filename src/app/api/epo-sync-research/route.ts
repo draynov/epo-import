@@ -10,103 +10,105 @@ export async function POST(request: NextRequest) {
     console.log('🔬 API: User ID:', epoUserId);
     console.log('🔬 API: Research data:', research);
 
-    // Validate required fields
     if (!epoPortfolioId || !epoUserId) {
       return NextResponse.json(
-        { success: false, error: 'Липсва Portfolio ID или User ID' },
+        { error: 'Missing EPO Portfolio ID or User ID' },
         { status: 400 }
       );
     }
 
-    if (!research || !Array.isArray(research)) {
+    if (!Array.isArray(research) || research.length === 0) {
       return NextResponse.json(
-        { success: false, error: 'Невалидни данни за научно-изследователска дейност' },
+        { error: 'No research records to sync' },
         { status: 400 }
       );
     }
 
-    // Build the payload
-    const formData = new URLSearchParams();
-    formData.append('portfolio', epoPortfolioId.toString());
-    formData.append('users', epoUserId.toString());
-    formData.append('cmd', 'research');
+    // Sync each research record
+    const syncResults: Array<{ success: boolean; message?: string; error?: string }> = [];
 
-    // Add research data
-    const dataArray: Array<{
-      mesec_from: number;
-      godina_from: number;
-      mesec_to: number;
-      godina_to: number;
-      now_to: number;
-      name: string;
-      position: string;
-      organization: string;
-      content?: string;
-    }> = research.map((item: Record<string, unknown>) => ({
-      mesec_from: item.mesec_from ? Number(item.mesec_from) : 0,
-      godina_from: item.godina_from ? Number(item.godina_from) : 0,
-      mesec_to: item.mesec_to ? Number(item.mesec_to) : 0,
-      godina_to: item.godina_to ? Number(item.godina_to) : 0,
-      now_to: item.now_to ? Number(item.now_to) : 0,
-      name: String(item.name || ''),
-      position: String(item.position || ''),
-      organization: String(item.organization || ''),
-      content: item.content ? String(item.content) : undefined,
-    }));
+    for (const record of research) {
+      try {
+        console.log('🔬 Sending research record:', record);
 
-    formData.append('data', JSON.stringify(dataArray));
+        // Build EPO API payload
+        const payload: Record<string, string | number> = {
+          token: EPO_API_CONFIG.TOKEN,
+          portfolio: epoPortfolioId,
+          users: epoUserId,
+          cmd: 'research',
+          mesec_from: Number(record.mesec_from || 0),
+          godina_from: Number(record.godina_from),
+          mesec_to: Number(record.mesec_to || 0),
+          godina_to: Number(record.godina_to || 0),
+          now_to: record.now_to ? 1 : 0,
+          name: String(record.name),
+          position: String(record.position),
+          organization: String(record.organization),
+        };
 
-    console.log('🔬 API: Sending payload to EPO:', {
-      portfolio: epoPortfolioId,
-      users: epoUserId,
-      cmd: 'research',
-      dataCount: dataArray.length,
-    });
+        // Add content if provided
+        if (record.content) {
+          payload.content = String(record.content);
+        }
 
-    // Send to EPO API
-    const response = await fetch(EPO_API_CONFIG.BASE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Bearer ${EPO_API_CONFIG.TOKEN}`,
-      },
-      body: formData.toString(),
-    });
+        console.log('🔬 Payload:', payload);
 
-    console.log('🔬 API: EPO response status:', response.status);
+        // Send to EPO API
+        const formData = new URLSearchParams();
+        Object.entries(payload).forEach(([key, value]) => {
+          formData.append(key, String(value));
+        });
 
-    if (!response.ok) {
-      return NextResponse.json(
-        { success: false, error: `HTTP error: ${response.status} ${response.statusText}` },
-        { status: response.status }
-      );
+        const response = await fetch(EPO_API_CONFIG.BASE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: formData.toString(),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json() as EpoApiResponse;
+
+        console.log('🔬 Research response:', data);
+
+        if ('Message' in data) {
+          syncResults.push({ success: true, message: data.Message });
+        } else if ('Error' in data) {
+          syncResults.push({ success: false, error: data.Error });
+        } else {
+          syncResults.push({ success: false, error: 'Unknown response format' });
+        }
+      } catch (error) {
+        console.error('🔬 Error syncing research:', error);
+        syncResults.push({
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     }
 
-    const data = await response.json() as EpoApiResponse;
-    console.log('🔬 API: EPO response data:', data);
+    // Calculate summary
+    const successCount = syncResults.filter((r) => r.success).length;
+    const errorCount = syncResults.filter((r) => !r.success).length;
 
-    if ('Message' in data) {
-      return NextResponse.json({
-        success: true,
-        message: data.Message,
-      });
-    } else if ('Error' in data) {
-      return NextResponse.json({
-        success: false,
-        error: data.Error,
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: 'Невалиден формат на отговора',
-      });
-    }
+    console.log('🔬 Sync complete:', { total: research.length, success: successCount, errors: errorCount });
+
+    return NextResponse.json({
+      success: errorCount === 0,
+      message: `Successfully synced ${successCount} of ${research.length} research records`,
+      results: syncResults,
+    });
   } catch (error) {
-    console.error('🔬 API: Research sync error:', error);
+    console.error('🔬 Research sync error:', error);
     return NextResponse.json(
       {
         success: false,
-        error: error instanceof Error ? error.message : 'Неизвестна грешка',
+        error: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }
     );
