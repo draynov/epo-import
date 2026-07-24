@@ -57,9 +57,10 @@ export const SECTION_3_PRACTICAL: PortfolioSectionDefinition = {
         {
           key: "years",
           label: "Учебни години",
-          type: "text",
+          type: "multiselect",
           required: true,
-          description: "Например: 2024/2025, 2023/2024",
+          options: OPTIONS.ACADEMIC_YEARS,
+          description: "Изберете учебни години",
         },
       ],
     },

@@ -269,6 +269,18 @@ export const COMPETENCES: FieldOptionGroup[] = [
 ];
 
 /**
+ * Учебни години от 1970/1971 до 2026/2027
+ */
+export const ACADEMIC_YEARS: FieldOption[] = (() => {
+  const years: FieldOption[] = [];
+  for (let year = 2026; year >= 1970; year--) {
+    const academicYear = `${year}/${year + 1}`;
+    years.push({ value: academicYear, label: academicYear });
+  }
+  return years;
+})();
+
+/**
  * Helper: Намира името на групата по стойността на компетентността
  */
 export function getCompetenceGroup(value: string | number): string | null {

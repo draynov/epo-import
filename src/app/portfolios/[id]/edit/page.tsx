@@ -59,6 +59,8 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
   const [teachingPhilosophySyncMessage, setTeachingPhilosophySyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [isSyncingCompetences, setIsSyncingCompetences] = useState(false);
   const [competencesSyncMessage, setCompetencesSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [isSyncingClasses, setIsSyncingClasses] = useState(false);
+  const [classesSyncMessage, setClassesSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   // Load portfolio and all subsection data
   useEffect(() => {
@@ -1056,6 +1058,86 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
     }
   };
 
+  // Sync classes to EPO API
+  const handleSyncClasses = async () => {
+    if (!portfolio) return;
+    
+    console.log('🎓 CLIENT: Starting classes sync...');
+    
+    // Validate IDs
+    if (!portfolio.epoPortfolioId || !portfolio.epoUserId) {
+      setClassesSyncMessage({
+        type: 'error',
+        text: 'Моля, въведете EPO Portfolio ID и User ID в настройките на портфолиото.'
+      });
+      return;
+    }
+    
+    // Get classes data
+    const classesData = allSubsectionData['classes'] as { records?: Array<Record<string, unknown>> } || {};
+    const classes = classesData.records || [];
+    
+    console.log('🎓 CLIENT: Classes data:', classes);
+    
+    if (classes.length === 0) {
+      setClassesSyncMessage({
+        type: 'error',
+        text: 'Няма данни за учебни предмети и класове. Моля, добавете поне един запис.'
+      });
+      return;
+    }
+    
+    setIsSyncingClasses(true);
+    setClassesSyncMessage(null);
+    
+    try {
+      console.log('🎓 CLIENT: Calling /api/epo-sync-classes...');
+      
+      const response = await fetch('/api/epo-sync-classes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          epoPortfolioId: portfolio.epoPortfolioId,
+          epoUserId: portfolio.epoUserId,
+          classes: classes,
+        }),
+      });
+      
+      console.log('🎓 CLIENT: Response status:', response.status);
+      
+      const data = await response.json();
+      
+      console.log('🎓 CLIENT: Response data:', data);
+      
+      if (data.success) {
+        setClassesSyncMessage({
+          type: 'success',
+          text: `Успешна синхронизация! ${data.message}`
+        });
+      } else {
+        setClassesSyncMessage({
+          type: 'error',
+          text: `Грешка от API: ${data.error}`
+        });
+      }
+    } catch (error) {
+      console.error('🎓 CLIENT: Classes sync error:', error);
+      setClassesSyncMessage({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Неизвестна грешка при синхронизация'
+      });
+    } finally {
+      setIsSyncingClasses(false);
+      
+      // Auto-hide message after 5 seconds
+      setTimeout(() => {
+        setClassesSyncMessage(null);
+      }, 5000);
+    }
+  };
+
   // Sync competences to EPO API
   const handleSyncCompetences = async () => {
     if (!portfolio) return;
@@ -1960,6 +2042,58 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                             )}
                           </Button>
                         )}
+                        {subsection.subsectionId === "classes" && (
+                          <Button
+                            size="sm"
+                            onClick={handleSyncClasses}
+                            disabled={isSyncingClasses || !portfolio.epoPortfolioId || !portfolio.epoUserId}
+                            className="bg-purple-500 hover:bg-purple-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {isSyncingClasses ? (
+                              <>
+                                <svg
+                                  className="animate-spin h-4 w-4 mr-1"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <circle
+                                    className="opacity-25"
+                                    cx="12"
+                                    cy="12"
+                                    r="10"
+                                    stroke="currentColor"
+                                    strokeWidth="4"
+                                  ></circle>
+                                  <path
+                                    className="opacity-75"
+                                    fill="currentColor"
+                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                  ></path>
+                                </svg>
+                                Синхронизиране...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className="h-4 w-4 mr-1"
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                  />
+                                </svg>
+                                Синхронизирай
+                              </>
+                            )}
+                          </Button>
+                        )}
                         {subsection.subsectionId === "competences" && (
                           <Button
                             size="sm"
@@ -2020,6 +2154,54 @@ export default function PortfolioEditorPage({ params }: PortfolioEditorPageProps
                       </Button>
                     )}
                   </div>
+                  
+                  {/* Classes Sync Status Message */}
+                  {subsection.subsectionId === "classes" && classesSyncMessage && (
+                    <div className={`mt-3 p-3 rounded-md ${
+                      classesSyncMessage.type === 'success' 
+                        ? 'bg-purple-50 border border-purple-200' 
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      <div className="flex items-center">
+                        {classesSyncMessage.type === 'success' ? (
+                          <svg
+                            className="h-4 w-4 text-purple-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="h-4 w-4 text-red-600 mr-2"
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <p className={`text-sm font-medium ${
+                          classesSyncMessage.type === 'success' ? 'text-purple-800' : 'text-red-800'
+                        }`}>
+                          {classesSyncMessage.text}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Positions Sync Status Message */}
                   {subsection.subsectionId === "position-history" && positionsSyncMessage && (
