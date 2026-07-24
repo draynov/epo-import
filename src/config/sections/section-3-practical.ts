@@ -108,8 +108,10 @@ export const SECTION_3_PRACTICAL: PortfolioSectionDefinition = {
         {
           key: "years",
           label: "Учебни години",
-          type: "text",
+          type: "multiselect",
           required: true,
+          options: OPTIONS.ACADEMIC_YEARS,
+          description: "Изберете учебни години",
         },
       ],
     },

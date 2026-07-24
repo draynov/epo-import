@@ -45,6 +45,16 @@ export function RecordModal({
         updated.godina_to = undefined;
       }
       
+      // If "class" is changed and is NOT "20", clear multiclass
+      if (key === "class" && String(value) !== "20") {
+        updated.multiclass = undefined;
+      }
+      
+      // If "group" is changed and is NOT "6", clear multigroup
+      if (key === "group" && String(value) !== "6") {
+        updated.multigroup = undefined;
+      }
+      
       return updated;
     });
     
@@ -68,6 +78,16 @@ export function RecordModal({
       
       if (isDisabledByNowTo) {
         continue;
+      }
+      
+      // Skip validation for conditional fields that are not shown
+      if (field.conditionalOn) {
+        const conditionValue = formData[field.conditionalOn.field];
+        const expectedValue = field.conditionalOn.value;
+        
+        if (String(conditionValue) !== String(expectedValue)) {
+          continue; // Field is not visible, skip validation
+        }
       }
       
       // Custom required logic
@@ -103,6 +123,17 @@ export function RecordModal({
         {subsection.fields.map((field) => {
           const hasNowTo = formData.now_to === true;
           const isDisabled = hasNowTo && (field.key === "mesec_to" || field.key === "godina_to");
+          
+          // Check conditionalOn logic
+          if (field.conditionalOn) {
+            const conditionValue = formData[field.conditionalOn.field];
+            const expectedValue = field.conditionalOn.value;
+            
+            // Skip rendering if condition is not met
+            if (String(conditionValue) !== String(expectedValue)) {
+              return null;
+            }
+          }
           
           return (
             <DynamicField
